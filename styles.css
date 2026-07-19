@@ -2038,6 +2038,27 @@ button {
   flex: 1;
 }
 
+/* Анімація польоту емодзі в кошик */
+.flyer-emoji {
+  pointer-events: none;
+  font-size: 32px;
+  line-height: 1;
+  user-select: none;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2));
+  will-change: transform, opacity;
+}
+
+/* Ефект підстрибування іконки кошика при потраплянні */
+.cart-pop svg {
+  animation: cartIconBounce 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes cartIconBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35) rotate(-12deg); }
+  100% { transform: scale(1); }
+}
+
 /* ==========================================================
    АДМІН-ПАНЕЛЬ: ВХІД / АВТОРИЗАЦІЯ
    ========================================================== */

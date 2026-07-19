@@ -354,6 +354,9 @@ function attachCardEventListeners(cardEl, item) {
     const price = calculatePrice(item.basePrice, size.multiplier);
     addToCart(item, size, price);
 
+    // Запуск анімації польоту
+    animateFlyToCart(addToCartBtn, item.emoji);
+
     // Микро-анимация кнопки
     addToCartBtn.textContent = '✓ Добавлено';
     addToCartBtn.style.backgroundColor = 'var(--color-mocha)';
@@ -1188,6 +1191,69 @@ function initOrderStatusModal() {
       closeModal();
     }
   });
+}
+
+/**
+ * Анімація "польоту" емодзі в кошик.
+ * @param {HTMLElement} startElement - Елемент, від якого починається політ (кнопка)
+ * @param {string} emoji - Емодзі напою
+ */
+function animateFlyToCart(startElement, emoji) {
+  // Визначаємо кнопку кошика (пріоритет плаваючій кнопці, якщо вона вже активна)
+  const floatingBtn = document.getElementById('floatingCartBtn');
+  const headerBtn = document.getElementById('cartToggleBtn');
+  
+  // Якщо плаваюча кнопка має клас is-visible, летимо туди, інакше в шапку
+  const targetBtn = (floatingBtn && floatingBtn.classList.contains('is-visible'))
+    ? floatingBtn
+    : headerBtn;
+
+  if (!startElement || !targetBtn) return;
+
+  const startRect = startElement.getBoundingClientRect();
+  const targetRect = targetBtn.getBoundingClientRect();
+
+  // Створюємо елемент для польоту
+  const flyer = document.createElement('div');
+  flyer.className = 'flyer-emoji';
+  flyer.textContent = emoji || '☕';
+  flyer.style.position = 'fixed';
+  flyer.style.left = `${startRect.left + startRect.width / 2 - 16}px`;
+  flyer.style.top = `${startRect.top + startRect.height / 2 - 16}px`;
+  flyer.style.zIndex = '99999';
+
+  document.body.appendChild(flyer);
+
+  const deltaX = (targetRect.left + targetRect.width / 2) - (startRect.left + startRect.width / 2);
+  const deltaY = (targetRect.top + targetRect.height / 2) - (startRect.top + startRect.height / 2);
+
+  // Використовуємо Web Animations API для плавної параболічної траєкторії
+  const animation = flyer.animate([
+    {
+      transform: 'translate(0, 0) scale(1.2) rotate(0deg)',
+      opacity: '1'
+    },
+    {
+      transform: `translate(${deltaX * 0.5}px, ${deltaY * 0.2 - 80}px) scale(1) rotate(180deg)`,
+      opacity: '0.9'
+    },
+    {
+      transform: `translate(${deltaX}px, ${deltaY}px) scale(0.3) rotate(360deg)`,
+      opacity: '0.5'
+    }
+  ], {
+    duration: 750,
+    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+  });
+
+  animation.onfinish = () => {
+    flyer.remove();
+    // Додаємо клас мікро-анімації кошику (анімуємо внутрішній SVG)
+    targetBtn.classList.add('cart-pop');
+    setTimeout(() => {
+      targetBtn.classList.remove('cart-pop');
+    }, 350);
+  };
 }
 
 document.addEventListener('DOMContentLoaded', init);
