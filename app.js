@@ -1086,7 +1086,11 @@ function initOrderForm() {
       }
 
       console.info('📦 Замовлення оформлено:', orderData);
-      alert(`Дякуємо, ${orderData.name}! Ваше замовлення прийнято. Чекаємо на вас о ${orderData.time}.`);
+      showOrderStatusModal(
+        true,
+        'Замовлення прийнято!',
+        `Дякуємо, ${orderData.name}! Ваше замовлення прийнято. Чекаємо на вас о ${orderData.pickup_time}.`
+      );
 
       // Очищення кошика та форми
       cart = [];
@@ -1096,7 +1100,11 @@ function initOrderForm() {
       initTimePicker(timeInput);
     } catch (err) {
       console.error('❌ Помилка оформлення замовлення:', err);
-      alert(err.message || 'Виникла помилка під час відправки замовлення. Спробуйте ще раз.');
+      showOrderStatusModal(
+        false,
+        'Помилка оформлення',
+        err.message || 'Виникла помилка під час відправки замовлення. Спробуйте ще раз.'
+      );
       submitBtn.disabled = false;
     } finally {
       submitBtn.textContent = originalBtnText;
@@ -1119,7 +1127,65 @@ function init() {
   initFilterTabs();
   initCart();
   initOrderForm();
+  initOrderStatusModal();
   updateCartUI();
+}
+
+/**
+ * Керування модальним вікном статусу замовлення
+ */
+function showOrderStatusModal(isSuccess, title, message) {
+  const modal = document.getElementById('orderStatusModal');
+  const iconContainer = document.getElementById('orderStatusIcon');
+  const titleEl = document.getElementById('orderStatusTitle');
+  const messageEl = document.getElementById('orderStatusMessage');
+
+  if (!modal || !iconContainer || !titleEl || !messageEl) return;
+
+  titleEl.textContent = title;
+  messageEl.textContent = message;
+
+  if (isSuccess) {
+    iconContainer.className = 'order-status-card__icon success';
+    iconContainer.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="44" height="44">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    `;
+  } else {
+    iconContainer.className = 'order-status-card__icon error';
+    iconContainer.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="44" height="44">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    `;
+  }
+
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function initOrderStatusModal() {
+  const modal = document.getElementById('orderStatusModal');
+  const closeBtn = document.getElementById('closeStatusModalBtn');
+  const okBtn = document.getElementById('okStatusModalBtn');
+
+  if (!modal) return;
+
+  function closeModal() {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  closeBtn?.addEventListener('click', closeModal);
+  okBtn?.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);
