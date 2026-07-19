@@ -373,6 +373,19 @@
     <span class="floating-cart__badge" id="floatingCartBadge" aria-live="polite">0</span>
   </button>
 
+  <!-- Модальне вікно статусу замовлення -->
+  <div class="order-status-modal" id="orderStatusModal" aria-hidden="true">
+    <div class="order-status-card">
+      <button class="order-status-card__close" id="closeStatusModalBtn" aria-label="Закрити">&times;</button>
+      <div class="order-status-card__icon" id="orderStatusIcon">
+        <!-- Сюди динамічно вставлятиметься іконка через JS -->
+      </div>
+      <h3 class="order-status-card__title" id="orderStatusTitle">Замовлення прийнято!</h3>
+      <p class="order-status-card__message" id="orderStatusMessage">Дякуємо! Ваше замовлення прийнято.</p>
+      <button class="btn btn--primary btn--full" id="okStatusModalBtn">Чудово</button>
+    </div>
+  </div>
+
   <!-- Основний скрипт -->
   <script src="app.js"></script>
 </body>
