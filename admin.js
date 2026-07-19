@@ -17,17 +17,11 @@ function formatDate(dateStr) {
   });
 }
 
-let audioCtx = null;
-
-function initAudio() {
-  if (audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// Отримання заголовка авторизації для API
+function getAuthHeader() {
+  const password = sessionStorage.getItem('admin_password');
+  return password ? { 'Authorization': `Bearer ${password}` } : {};
 }
-
-// Розблокувати AudioContext при будь-якій взаємодії користувача
-['click', 'keydown', 'touchstart'].forEach(type => {
-  document.addEventListener(type, initAudio, { once: true });
-});
 
 // Програвання звуку при новому замовленні
 function playNotificationSound() {
@@ -35,12 +29,7 @@ function playNotificationSound() {
   if (!checkbox || !checkbox.checked) return;
 
   try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
     // Перший тон
     const osc1 = audioCtx.createOscillator();
@@ -56,7 +45,6 @@ function playNotificationSound() {
 
     // Другий тон (трохи вищий і з затримкою)
     setTimeout(() => {
-      if (audioCtx.state === 'suspended') return;
       const osc2 = audioCtx.createOscillator();
       const gain2 = audioCtx.createGain();
       osc2.type = 'sine';
@@ -76,8 +64,18 @@ function playNotificationSound() {
 // Отримання списку замовлень з сервера
 async function fetchOrders() {
   try {
-    const response = await fetch('/api/orders');
-    if (!response.ok) throw new Error('Помилка завантаження даних');
+    const response = await fetch('/api/orders', {
+      headers: getAuthHeader()
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Якщо токен недійсний (наприклад, змінився пароль) - виходимо
+        sessionStorage.removeItem('admin_password');
+        window.location.reload();
+        return;
+      }
+      throw new Error('Помилка завантаження даних');
+    }
     const data = await response.json();
     
     // Перевірка на нові замовлення для звукового сигналу
@@ -148,6 +146,7 @@ async function updateOrderStatus(orderId, newStatus) {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeader()
       },
       body: JSON.stringify({ status: newStatus }),
     });
@@ -219,6 +218,7 @@ async function deleteOrder(orderId) {
       try {
         const response = await fetch(`/api/orders/${orderId}`, {
           method: 'DELETE',
+          headers: getAuthHeader()
         });
 
         if (!response.ok) throw new Error('Помилка видалення замовлення');
@@ -243,6 +243,7 @@ async function deleteAllOrders() {
       try {
         const response = await fetch('/api/orders', {
           method: 'DELETE',
+          headers: getAuthHeader()
         });
 
         if (!response.ok) throw new Error('Помилка видалення всіх замовлень');
@@ -410,6 +411,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorMsg = document.getElementById('adminLoginError');
   const loginBtn = loginForm.querySelector('.admin-login-btn');
 
+  // Ініціалізація AudioContext на першу взаємодію користувача
+  let audioCtx = null;
+  function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  ['click', 'keydown', 'touchstart'].forEach(type => {
+    document.addEventListener(type, initAudio, { once: true });
+  });
+
   function initAdmin() {
     overlay.classList.add('hidden');
     initFilterTabs();
@@ -437,8 +448,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(fetchOrders, 10000);
   }
 
-  // Если уже авторизован в этой сессии
-  if (sessionStorage.getItem('admin_auth') === 'ok') {
+  // Если уже авторизован в этой сессии (проверяем наличие сохраненного пароля)
+  if (sessionStorage.getItem('admin_password')) {
     initAdmin();
     return;
   }
@@ -460,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (res.ok) {
-        sessionStorage.setItem('admin_auth', 'ok');
+        sessionStorage.setItem('admin_password', value);
         errorMsg.textContent = '';
         passInput.classList.remove('error');
         initAdmin();
