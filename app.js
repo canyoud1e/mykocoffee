@@ -560,6 +560,11 @@ function updateCartUI() {
     }
   }
 
+  // Оновлюємо загальну суму кошика
+  if (cartTotalEl) {
+    cartTotalEl.textContent = formatPrice(calculateCartTotal(cart));
+  }
+
   // Сводка заказа в секции оформления
   const orderSummaryContentEl = document.getElementById('orderSummaryContent');
   const orderFormEl = document.getElementById('orderForm');
