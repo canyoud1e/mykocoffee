@@ -281,6 +281,56 @@ async function dbGet(query, params = []) {
   return null;
 }
 
+// Надсилання сповіщення в Telegram
+async function sendTelegramNotification(orderId, name, phone, pickupDate, pickupTime, comment, cart) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) {
+    console.log('ℹ️ Telegram-сповіщення не налаштовані (відсутні TELEGRAM_BOT_TOKEN або TELEGRAM_CHAT_ID)');
+    return;
+  }
+
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const itemsText = cart.map(item => 
+    `• <b>${item.name}</b> (${item.sizeLabel} · ${item.sizeVolume}) — <b>${item.quantity} шт.</b>`
+  ).join('\n');
+
+  let message = `<b>☕ Нове замовлення #${orderId}</b>\n\n`;
+  message += `👤 <b>Клієнт:</b> ${name}\n`;
+  message += `📞 <b>Телефон:</b> <a href="tel:${phone}">${phone}</a>\n`;
+  message += `📅 <b>Час забору:</b> ${pickupDate} о ${pickupTime}\n\n`;
+  
+  if (comment) {
+    message += `💬 <b>Побажання:</b> <i>"${comment}"</i>\n\n`;
+  }
+  
+  message += `📦 <b>Деталі замовлення:</b>\n${itemsText}\n\n`;
+  message += `💰 <b>Разом до сплати:</b> <b>${total} ₴</b>`;
+
+  try {
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
+      })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      console.error('❌ Помилка надсилання в Telegram:', errData);
+    } else {
+      console.log(`📢 Telegram-сповіщення для замовлення #${orderId} успішно надіслано!`);
+    }
+  } catch (err) {
+    console.error('❌ Виняток при надсиланні Telegram-сповіщення:', err.message);
+  }
+}
+
 /* ==========================================================
    MIDDLEWARE ДЛЯ ЗАХИСТУ API
    ========================================================== */
@@ -360,6 +410,11 @@ app.post('/api/orders', async (req, res) => {
     }
 
     console.log(`📦 Створено замовлення #${orderId} для ${name}`);
+    
+    // Надсилання Telegram-сповіщення у фоновому режимі (без затримки відповіді клієнту)
+    sendTelegramNotification(orderId, name.trim(), phone.trim(), dateVal.trim(), timeVal.trim(), (comment || '').trim(), cart)
+      .catch(err => console.error('Telegram notification error:', err));
+
     res.status(201).json({ success: true, orderId });
   } catch (err) {
     console.error('❌ Помилка БД при створенні замовлення:', err.message);
