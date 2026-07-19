@@ -38,9 +38,15 @@ if (!IS_VERCEL) {
         pickup_date TEXT NOT NULL,
         pickup_time TEXT NOT NULL,
         status TEXT DEFAULT 'new',
+        comment TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Міграція для додавання колонки comment, якщо БД вже існувала
+    db.run(`ALTER TABLE orders ADD COLUMN comment TEXT`, (err) => {
+      // Ігноруємо помилку, якщо колонка вже існує
+    });
 
     db.run(`
       CREATE TABLE IF NOT EXISTS order_items (
@@ -71,13 +77,14 @@ function dbRun(query, params = []) {
   if (IS_VERCEL) {
     return new Promise((resolve) => {
       if (query.startsWith('INSERT INTO orders')) {
-        const [name, phone, date, time] = params;
+        const [name, phone, date, time, comment] = params;
         const newOrder = {
           id: memoryNextOrderId++,
           customer_name: name,
           customer_phone: phone,
           pickup_date: date,
           pickup_time: time,
+          comment: comment || '',
           status: 'new',
           created_at: new Date().toISOString()
         };
@@ -209,7 +216,7 @@ app.post('/api/auth', (req, res) => {
 
 // 1. Створення замовлення (POST /api/orders)
 app.post('/api/orders', async (req, res) => {
-  const { name, phone, pickup_date, pickup_time, time, cart } = req.body;
+  const { name, phone, pickup_date, pickup_time, time, comment, cart } = req.body;
 
   // Валідація вхідних даних
   if (!name || !name.trim()) {
@@ -245,8 +252,8 @@ app.post('/api/orders', async (req, res) => {
   try {
     // Вставка замовлення
     const orderResult = await dbRun(
-      `INSERT INTO orders (customer_name, customer_phone, pickup_date, pickup_time, status) VALUES (?, ?, ?, ?, 'new')`,
-      [name.trim(), phone.trim(), dateVal.trim(), timeVal.trim()]
+      `INSERT INTO orders (customer_name, customer_phone, pickup_date, pickup_time, comment, status) VALUES (?, ?, ?, ?, ?, 'new')`,
+      [name.trim(), phone.trim(), dateVal.trim(), timeVal.trim(), (comment || '').trim()]
     );
     const orderId = orderResult.lastID;
 

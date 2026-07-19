@@ -1057,11 +1057,13 @@ function initOrderForm() {
       pickupTime = rawTime;
     }
 
+    const commentInput = document.getElementById('orderComment');
     const orderData = {
       name:  nameInput.value.trim(),
       phone: phoneInput.value,
       pickup_date: pickupDate,
       pickup_time: pickupTime,
+      comment: commentInput ? commentInput.value.trim() : '',
       cart:  [...cart],
     };
 

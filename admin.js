@@ -365,6 +365,12 @@ function renderOrders() {
         <strong class="order-card__pickup-value">${order.pickup_date} о ${order.pickup_time}</strong>
       </div>
 
+      ${order.comment ? `
+      <div class="order-card__comment" style="background-color: #fff9e6; border: 1px solid #ffe8cc; color: #b25e00; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: 500; margin-top: var(--space-2); text-align: left; word-break: break-word;">
+        💬 <strong>Побажання:</strong> ${order.comment}
+      </div>
+      ` : ''}
+
       <div class="order-card__items">
         ${itemsHtml}
       </div>
