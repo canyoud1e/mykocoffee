@@ -1838,3 +1838,202 @@ button {
   margin: 0 0 24px 0;
 }
 
+/* =====================================================
+   16. ДАШБОРД ТА УПРАВЛІННЯ В АДМІНЦІ
+   ===================================================== */
+.admin-stats-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.admin-stat-card {
+  background-color: #fff;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(11, 59, 36, 0.08);
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  box-shadow: 0 10px 30px rgba(11, 59, 36, 0.02);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px rgba(11, 59, 36, 0.06);
+}
+
+.admin-stat-card__label {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-stat-card__value {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-dark-roast);
+}
+
+.admin-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  background-color: rgba(11, 59, 36, 0.03);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-xl);
+}
+
+.admin-search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 280px;
+}
+
+.admin-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+#adminSearchInput {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  border: 1.5px solid rgba(11, 59, 36, 0.12);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-espresso);
+  background-color: #fff;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+#adminSearchInput:focus {
+  border-color: var(--color-dark-roast);
+  box-shadow: 0 0 0 3px rgba(11, 59, 36, 0.08);
+}
+
+.admin-controls-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.admin-sound-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-sound-toggle input {
+  display: none;
+}
+
+.admin-sound-toggle__box {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 16px;
+  border-radius: var(--radius-full);
+  background-color: #fff;
+  border: 1.5px solid rgba(11, 59, 36, 0.12);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.admin-sound-toggle input:checked + .admin-sound-toggle__box {
+  background-color: rgba(11, 59, 36, 0.08);
+  border-color: var(--color-dark-roast);
+  color: var(--color-dark-roast);
+}
+
+.admin-sound-toggle input:not(:checked) + .admin-sound-toggle__box .admin-sound-toggle__icon {
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+
+/* Кастомне вікно підтвердження */
+.admin-confirm-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(17, 17, 17, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.admin-confirm-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.admin-confirm-card {
+  background-color: #fff;
+  border-radius: 24px;
+  padding: 32px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.admin-confirm-modal.active .admin-confirm-card {
+  transform: scale(1);
+}
+
+.admin-confirm-icon {
+  font-size: 40px;
+  margin-bottom: var(--space-4);
+  animation: modalIconPop2 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes modalIconPop2 {
+  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.admin-confirm-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-espresso);
+  margin: 0 0 8px 0;
+}
+
+.admin-confirm-message {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 28px 0;
+}
+
+.admin-confirm-buttons {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.admin-confirm-buttons .btn {
+  flex: 1;
+}

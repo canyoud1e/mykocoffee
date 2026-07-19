@@ -107,14 +107,25 @@ function dbRun(query, params = []) {
           resolve({ changes: 0 });
         }
       } else if (query.startsWith('DELETE FROM order_items')) {
-        const [orderId] = params;
-        memoryOrderItems = memoryOrderItems.filter(item => item.order_id !== Number(orderId));
-        resolve({ changes: 1 });
+        if (params.length === 0) {
+          memoryOrderItems = [];
+          resolve({ changes: 1 });
+        } else {
+          const [orderId] = params;
+          memoryOrderItems = memoryOrderItems.filter(item => item.order_id !== Number(orderId));
+          resolve({ changes: 1 });
+        }
       } else if (query.startsWith('DELETE FROM orders')) {
-        const [id] = params;
-        const initialCount = memoryOrders.length;
-        memoryOrders = memoryOrders.filter(o => o.id !== Number(id));
-        resolve({ changes: initialCount - memoryOrders.length });
+        if (params.length === 0) {
+          const initialCount = memoryOrders.length;
+          memoryOrders = [];
+          resolve({ changes: initialCount });
+        } else {
+          const [id] = params;
+          const initialCount = memoryOrders.length;
+          memoryOrders = memoryOrders.filter(o => o.id !== Number(id));
+          resolve({ changes: initialCount - memoryOrders.length });
+        }
       } else {
         resolve({ changes: 0 });
       }
@@ -333,6 +344,19 @@ app.delete('/api/orders/:id', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('❌ Помилка БД при видаленні замовлення:', err.message);
+    res.status(500).json({ error: 'Помилка бази даних на сервері' });
+  }
+});
+
+// 5. Видалення всіх замовлень (DELETE /api/orders)
+app.delete('/api/orders', async (req, res) => {
+  try {
+    await dbRun(`DELETE FROM order_items`);
+    await dbRun(`DELETE FROM orders`);
+    console.log(`🗑️ Видалено всі замовлення`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('❌ Помилка БД при видаленні всіх замовлень:', err.message);
     res.status(500).json({ error: 'Помилка бази даних на сервері' });
   }
 });
