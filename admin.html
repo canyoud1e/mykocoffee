@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Адмін-панель замовлень | Myko Coffee</title>
+  
+  <!-- Шрифти -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="admin-body">
+
+  <!-- ЕКРАН ВХОДУ -->
+  <div class="admin-login-overlay" id="adminLoginOverlay">
+    <div class="admin-login-card">
+      <div class="admin-login-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+          <ellipse cx="12" cy="12" rx="7" ry="10" />
+          <path d="M12 2C10 8 14 16 12 22" />
+        </svg>
+      </div>
+      <h2 class="admin-login-title">Myko Coffee</h2>
+      <p class="admin-login-subtitle">Вхід в адмін-панель</p>
+      <form id="adminLoginForm" autocomplete="off">
+        <div class="admin-login-field">
+          <input
+            type="password"
+            id="adminPasswordInput"
+            class="admin-login-input"
+            placeholder="Введіть пароль"
+            autofocus
+            required
+          />
+        </div>
+        <p class="admin-login-error" id="adminLoginError"></p>
+        <button type="submit" class="admin-login-btn">Увійти</button>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .admin-login-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0B3B24 0%, #135436 50%, #0E4B31 100%);
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+    .admin-login-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .admin-login-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 48px 40px 40px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      animation: loginSlideUp 0.5s ease;
+    }
+    @keyframes loginSlideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .admin-login-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0B3B24, #135436);
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .admin-login-logo svg {
+      transform: rotate(-25deg);
+    }
+    .admin-login-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0B3B24;
+      margin: 0 0 4px;
+    }
+    .admin-login-subtitle {
+      font-size: 0.875rem;
+      color: #8E8E93;
+      margin: 0 0 28px;
+    }
+    .admin-login-field {
+      margin-bottom: 12px;
+    }
+    .admin-login-input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 1.5px solid #E5E5EA;
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      color: #111;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-sizing: border-box;
+    }
+    .admin-login-input:focus {
+      border-color: #0B3B24;
+      box-shadow: 0 0 0 3px rgba(11, 59, 36, 0.1);
+    }
+    .admin-login-input.error {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+      animation: loginShake 0.4s ease;
+    }
+    @keyframes loginShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .admin-login-error {
+      font-size: 0.8rem;
+      color: #dc2626;
+      margin: 0 0 16px;
+      min-height: 1.2em;
+    }
+    .admin-login-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0B3B24, #135436);
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.1s ease;
+    }
+    .admin-login-btn:hover {
+      opacity: 0.92;
+    }
+    .admin-login-btn:active {
+      transform: scale(0.98);
+    }
+    @media (max-width: 480px) {
+      .admin-login-card {
+        margin: 0 16px;
+        padding: 36px 24px 28px;
+      }
+    }
+  </style>
+
+  <!-- ШАПКА АДМІНКИ -->
+  <header class="site-header">
+    <div class="container header__inner">
+      <a href="/" class="logo" aria-label="На головну — Myko Coffee">
+        <svg class="logo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28" aria-hidden="true">
+          <ellipse cx="12" cy="12" rx="7" ry="10" />
+          <path d="M12 2C10 8 14 16 12 22" />
+        </svg>
+        <span class="logo__text">
+          Myko Coffee
+          <span style="font-weight: 500; font-size: 0.75em; margin-left: var(--space-2.5); border-left: 1.5px solid rgba(11, 59, 36, 0.15); padding-left: var(--space-2.5); font-family: var(--font-body); color: var(--color-text-secondary); display: inline-block; vertical-align: middle;">Адмін-панель</span>
+        </span>
+      </a>
+      <nav class="main-nav" style="display: block;">
+        <ul class="main-nav__list" style="margin: 0; padding: 0; list-style: none;">
+          <li><a class="main-nav__link" href="/">На головну</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ГОЛОВНИЙ ВМІСТ -->
+  <main class="admin-main">
+    <div class="container">
+      <header class="admin-page-header">
+        <h1 class="admin-page-title">Управління замовленнями</h1>
+        <div class="admin-page-controls">
+          <button class="btn btn--secondary" id="refreshBtn">
+            <span>Оновити</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ТАБИ ФІЛЬТРІВ -->
+      <div class="admin-filters">
+        <button class="filter-tab filter-tab--active" data-status="all">
+          <span>Всі</span>
+          <span class="tab-count" id="countAll">0</span>
+        </button>
+        <button class="filter-tab" data-status="new">
+          <span>Нові</span>
+          <span class="tab-count" id="countNew">0</span>
+        </button>
+        <button class="filter-tab" data-status="preparing">
+          <span>Готуються</span>
+          <span class="tab-count" id="countPreparing">0</span>
+        </button>
+        <button class="filter-tab" data-status="ready">
+          <span>Готові</span>
+          <span class="tab-count" id="countReady">0</span>
+        </button>
+        <button class="filter-tab" data-status="completed">
+          <span>Завершені</span>
+          <span class="tab-count" id="countCompleted">0</span>
+        </button>
+      </div>
+
+      <!-- СІТКА ЗАМОВЛЕНЬ -->
+      <div class="orders-grid" id="ordersGrid">
+        <!-- Замовлення завантажуються динамічно -->
+        <div class="orders-loading">
+          <div class="spinner"></div>
+          <p>Завантаження замовлень...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

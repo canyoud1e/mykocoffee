@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Затишна кав'ярня «Myko Coffee» в Миколаєві — авторська кава, десерти та тепла атмосфера. Замовте онлайн та заберіть у зручний час." />
+  <title>Myko Coffee — Спешелті кав'ярня · Миколаїв</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Основні стилі -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ========== ШАПКА САЙТУ ========== -->
+  <header class="site-header">
+    <div class="container header__inner">
+      <a href="#" class="logo" aria-label="На головну — Myko Coffee">
+        <svg class="logo__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28" aria-hidden="true">
+          <ellipse cx="12" cy="12" rx="7" ry="10" />
+          <path d="M12 2C10 8 14 16 12 22" />
+        </svg>
+        <span class="logo__text">Myko Coffee</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Основна навігація">
+        <ul class="main-nav__list" role="list">
+          <li><a class="main-nav__link" href="#menu">Меню</a></li>
+          <li><a class="main-nav__link" href="#about">Про нас</a></li>
+          <li><a class="main-nav__link" href="#order">Передзамовлення</a></li>
+          <li><a class="main-nav__link" href="#location">Як нас знайти</a></li>
+        </ul>
+      </nav>
+
+      <!-- Кнопка кошика -->
+      <button class="cart-btn" id="cartToggleBtn" aria-label="Відкрити кошик" aria-expanded="false">
+        <span class="cart-btn__icon" aria-hidden="true">🛒</span>
+        <span class="cart-btn__count" id="cartCount" aria-live="polite">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========== ГОЛОВНИЙ КОНТЕНТ ========== -->
+  <main id="main-content">
+
+    <!-- СЕКЦІЯ: Герой (перший екран) -->
+    <!-- СЕКЦІЯ: Герой (перший екран - великий банер на всю ширину) -->
+    <section class="hero-banner" aria-labelledby="hero-title">
+      <div class="hero-banner__overlay"></div>
+      <div class="container hero-banner__container">
+        <div class="hero-banner__content">
+          <p class="hero-banner__eyebrow">Авторська кава в Миколаєві</p>
+          <h1 class="hero-banner__title" id="hero-title">
+            Кожна чашка —<br />
+            <span class="hero-banner__highlight">маленький шедевр</span>
+          </h1>
+          <p class="hero-banner__subtitle">
+            Обсмажуємо зерно самі. Варимо з душею. Чекаємо на вас щодня з 08:00 до 22:00.
+          </p>
+          <div class="hero-banner__actions">
+            <a class="btn btn--primary btn--banner" href="#menu">Переглянути меню</a>
+            <a class="btn btn--ghost btn--banner-ghost" href="#order">Передзамовлення</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЕКЦІЯ: Меню -->
+    <section class="menu-section" id="menu" aria-labelledby="menu-title">
+      <div class="container">
+        <header class="section-header">
+          <h2 class="section-header__title" id="menu-title">Наше меню</h2>
+          <p class="section-header__subtitle">Оберіть напій до смаку та об'єму</p>
+        </header>
+
+        <!-- Таби-фільтри -->
+        <nav class="filter-tabs" aria-label="Фільтр категорій меню">
+          <ul class="filter-tabs__list" role="list">
+            <li>
+              <button
+                class="filter-tabs__btn filter-tabs__btn--active"
+                data-filter="all"
+                aria-pressed="true"
+              >Усі</button>
+            </li>
+            <li>
+              <button
+                class="filter-tabs__btn"
+                data-filter="classic"
+                aria-pressed="false"
+              >Класика</button>
+            </li>
+            <li>
+              <button
+                class="filter-tabs__btn"
+                data-filter="author"
+                aria-pressed="false"
+              >Авторський</button>
+            </li>
+            <li>
+              <button
+                class="filter-tabs__btn"
+                data-filter="dessert"
+                aria-pressed="false"
+              >Десерти</button>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Сітка карточок (рендериться динамічно з app.js) -->
+        <ul class="menu-grid" id="menuGrid" role="list" aria-label="Список напоїв"></ul>
+      </div>
+    </section>
+
+    <!-- СЕКЦІЯ: Про нас -->
+    <section class="about-section" id="about" aria-labelledby="about-title">
+      <div class="container about__inner">
+        <div class="about__text">
+          <h2 class="section-header__title" id="about-title">Про нас</h2>
+          <p>
+            «Myko Coffee» — це місце, де час зупиняється. Ми співпрацюємо з фермами
+            Ефіопії та Колумбії і самостійно обсмажуємо зерно на власному виробництві.
+          </p>
+          <p>
+            Наші бариста проходять сертифікацію SCA та беруть участь у чемпіонатах
+            з приготування кави. Кожен напій — це баланс науки та мистецтва.
+          </p>
+        </div>
+        <div class="about__stats" aria-label="Наші досягнення">
+          <article class="stat-card">
+            <strong class="stat-card__number">12+</strong>
+            <span class="stat-card__label">років на ринку</span>
+          </article>
+          <article class="stat-card">
+            <strong class="stat-card__number">40+</strong>
+            <span class="stat-card__label">сортів зерна</span>
+          </article>
+          <article class="stat-card">
+            <strong class="stat-card__number">5★</strong>
+            <span class="stat-card__label">середній рейтинг</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЕКЦІЯ: Форма передзамовлення -->
+    <section class="order-section" id="order" aria-labelledby="order-title">
+      <div class="container">
+        <header class="section-header">
+          <h2 class="section-header__title" id="order-title">Передзамовлення</h2>
+          <p class="section-header__subtitle">Оформте замовлення онлайн та заберіть у зручний час</p>
+        </header>
+
+        <div class="order-layout">
+          <!-- Форма предзаказа -->
+          <div class="order-layout__form">
+            <form class="order-form" id="orderForm" novalidate aria-label="Форма передзамовлення">
+              <div class="form-group">
+                <label class="form-label" for="customerName">Ваше ім'я</label>
+                <input
+                  class="form-input"
+                  type="text"
+                  id="customerName"
+                  name="customerName"
+                  placeholder="Іван Іваненко"
+                  autocomplete="given-name"
+                  required
+                />
+                <span class="form-error" id="nameError" role="alert" aria-live="polite"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="customerPhone">Телефон</label>
+                <input
+                  class="form-input"
+                  type="tel"
+                  id="customerPhone"
+                  name="customerPhone"
+                  placeholder="+380 (__) ___-__-__"
+                  autocomplete="tel"
+                  required
+                />
+                <span class="form-error" id="phoneError" role="alert" aria-live="polite"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Час самовивозу</label>
+                <div class="time-picker-container" id="timePickerContainer">
+                  <!-- Динамічні фішки часу -->
+                </div>
+                <input type="hidden" id="pickupTime" name="pickupTime" required />
+                <span class="form-error" id="timeError" role="alert" aria-live="polite"></span>
+              </div>
+
+              <button class="btn btn--primary btn--full" type="submit" id="submitOrderBtn" disabled>
+                Відправити замовлення
+              </button>
+            </form>
+          </div>
+
+          <!-- Сводка заказа -->
+          <div class="order-layout__summary">
+            <div class="order-summary-card">
+              <h3 class="order-summary-card__title">Ваше замовлення</h3>
+              <div class="order-summary-card__content" id="orderSummaryContent">
+                <!-- Заполняется динамически через JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЕКЦІЯ: Карта та контакти -->
+    <section class="location-section" id="location" aria-labelledby="location-title">
+      <div class="container">
+        <header class="section-header">
+          <h2 class="section-header__title" id="location-title">Як нас знайти</h2>
+          <p class="section-header__subtitle">Ми поруч — завітайте на каву!</p>
+        </header>
+
+        <div class="location__inner">
+          <!-- Контактна інформація -->
+          <div class="location-info">
+            <ul class="location-info__list" role="list">
+              <li class="location-info__item">
+                <span class="location-info__icon-wrapper" aria-hidden="true">
+                  <svg class="location-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                </span>
+                <div>
+                  <strong class="location-info__label">Адреса</strong>
+                  <address class="location-info__value">
+                    вул. Георгія Гонгадзе, 3а,<br />Миколаїв, Миколаївська обл., 54000
+                  </address>
+                </div>
+              </li>
+              <li class="location-info__item">
+                <span class="location-info__icon-wrapper" aria-hidden="true">
+                  <svg class="location-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </span>
+                <div>
+                  <strong class="location-info__label">Режим роботи</strong>
+                  <p class="location-info__value">Пн–Нд: 08:00 – 22:00<br />Без вихідних</p>
+                </div>
+              </li>
+              <li class="location-info__item">
+                <span class="location-info__icon-wrapper" aria-hidden="true">
+                  <svg class="location-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                </span>
+                <div>
+                  <strong class="location-info__label">Телефон</strong>
+                  <p class="location-info__value">
+                    <a href="tel:+380676767667" class="location-info__phone">+38 (067) 676-76-67</a>
+                  </p>
+                </div>
+              </li>
+              <li class="location-info__item">
+                <span class="location-info__icon-wrapper" aria-hidden="true">
+                  <svg class="location-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
+                  </svg>
+                </span>
+                <div>
+                  <strong class="location-info__label">Email</strong>
+                  <p class="location-info__value">
+                    <a href="mailto:canyoud1ee@gmail.com" class="location-info__phone">canyoud1ee@gmail.com</a>
+                  </p>
+                </div>
+              </li>
+            </ul>
+
+            <a
+              class="btn btn--primary location-info__map-btn"
+              href="https://maps.app.goo.gl/qbjbagh99HZCp5VY6"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Відкрити на Google Maps (нова вкладка)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="margin-right: 8px; display: inline-block; vertical-align: middle;">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <span style="display: inline-block; vertical-align: middle;">Відкрити на Google Maps</span>
+            </a>
+          </div>
+
+          <!-- Iframe карти -->
+          <div class="map-wrapper">
+            <iframe
+              class="map-frame"
+              title="Карта розташування кав'ярні «Myko Coffee»"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d404.7379920384761!2d31.9640566!3d46.9667626!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40c5c93f92a28a95%3A0xa8e330a50a5b360a!2z0JzQuNC60L7Qu9Cw0ZfQstGB0YzQutC40Lkg0J3QsNGG0ZbQvtC90LDQu9GM0L3QuNC5INCQ0LPRgNCw0YDQvdC40Lkg0KPQvdGW0LLQtdGA0YHQuNGC0LXRgg!5e0!3m2!1suk!2sua!4v1720000000001!5m2!1suk!2sua"
+              width="100%"
+              height="420"
+              style="border:0;"
+              allowfullscreen=""
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== КОШИК (бічна панель) ========== -->
+  <aside class="cart-panel" id="cartPanel" aria-label="Кошик" aria-hidden="true">
+    <div class="cart-panel__inner">
+      <header class="cart-panel__header">
+        <h2 class="cart-panel__title">Кошик</h2>
+        <div class="cart-panel__actions">
+          <button class="cart-panel__clear" id="cartClearBtn" aria-label="Очистити кошик" title="Очистити кошик">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+              <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            </svg>
+            <span>Очистити</span>
+          </button>
+          <button class="cart-panel__close" id="cartCloseBtn" aria-label="Закрити кошик">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <ul class="cart-items" id="cartItems" role="list" aria-label="Товари в кошику"></ul>
+
+      <footer class="cart-panel__footer">
+        <div class="cart-total">
+          <span>Разом:</span>
+          <strong id="cartTotal" aria-live="polite">0 ₴</strong>
+        </div>
+        <a class="btn btn--primary btn--full" href="#order" id="goToOrderBtn">
+          Оформити замовлення
+        </a>
+      </footer>
+    </div>
+  </aside>
+
+  <!-- Оверлей для кошика -->
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+  <!-- ========== ПІДВАЛ ========== -->
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <p class="site-footer__copy">© 2026 Кав'ярня «Myko Coffee». Всі права захищені.</p>
+      <address class="site-footer__address">
+        Миколаїв, вул. Г. Гонгадзе, 3а · Пн–Нд 08:00–22:00
+      </address>
+    </div>
+  </footer>
+
+  <!-- Floating Cart Button -->
+  <button class="floating-cart" id="floatingCartBtn" aria-label="Відкрити кошик">
+    <span class="floating-cart__icon" aria-hidden="true">🛒</span>
+    <span class="floating-cart__badge" id="floatingCartBadge" aria-live="polite">0</span>
+  </button>
+
+  <!-- Основний скрипт -->
+  <script src="app.js"></script>
+</body>
+</html>
