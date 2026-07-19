@@ -193,6 +193,42 @@
         </div>
       </header>
 
+      <!-- ПАНЕЛЬ СТАТИСТИКИ (Дашборд бариста) -->
+      <div class="admin-stats-panel">
+        <div class="admin-stat-card">
+          <span class="admin-stat-card__label">💰 Каса (Виконані)</span>
+          <strong class="admin-stat-card__value" id="statsRevenue">0 ₴</strong>
+        </div>
+        <div class="admin-stat-card">
+          <span class="admin-stat-card__label">☕ Виконано замовлень</span>
+          <strong class="admin-stat-card__value" id="statsCount">0</strong>
+        </div>
+        <div class="admin-stat-card">
+          <span class="admin-stat-card__label">📊 Середній чек</span>
+          <strong class="admin-stat-card__value" id="statsAverage">0 ₴</strong>
+        </div>
+      </div>
+
+      <!-- РЯДОК УПРАВЛІННЯ (Пошук, звук, видалення всього) -->
+      <div class="admin-controls-row">
+        <div class="admin-search-wrapper">
+          <span class="admin-search-icon">🔍</span>
+          <input type="text" id="adminSearchInput" placeholder="Пошук за іменем, телефоном чи товаром..." autocomplete="off">
+        </div>
+        <div class="admin-controls-actions">
+          <label class="admin-sound-toggle">
+            <input type="checkbox" id="adminSoundCheckbox" checked>
+            <span class="admin-sound-toggle__box">
+              <span class="admin-sound-toggle__icon">🔔</span>
+              <span>Звуковий сигнал</span>
+            </span>
+          </label>
+          <button class="btn btn--danger" id="deleteAllBtn" style="background-color: #dc2626; border-color: #dc2626; color: #fff;">
+            <span>Видалити всі</span>
+          </button>
+        </div>
+      </div>
+
       <!-- ТАБИ ФІЛЬТРІВ -->
       <div class="admin-filters">
         <button class="filter-tab filter-tab--active" data-status="all">
@@ -227,6 +263,19 @@
       </div>
     </div>
   </main>
+
+  <!-- Кастомний діалог підтвердження -->
+  <div class="admin-confirm-modal" id="adminConfirmModal" aria-hidden="true">
+    <div class="admin-confirm-card">
+      <div class="admin-confirm-icon">⚠️</div>
+      <h3 class="admin-confirm-title" id="confirmTitle">Видалити замовлення?</h3>
+      <p class="admin-confirm-message" id="confirmMessage">Цю дію неможливо скасувати.</p>
+      <div class="admin-confirm-buttons">
+        <button class="btn btn--secondary" id="confirmCancelBtn">Скасувати</button>
+        <button class="btn" id="confirmOkBtn" style="background-color: #dc2626; border-color: #dc2626; color: #fff;">Видалити</button>
+      </div>
+    </div>
+  </div>
 
   <script src="admin.js"></script>
 </body>

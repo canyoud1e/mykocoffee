@@ -17,14 +17,63 @@ function formatDate(dateStr) {
   });
 }
 
+// Програвання звуку при новому замовленні
+function playNotificationSound() {
+  const checkbox = document.getElementById('adminSoundCheckbox');
+  if (!checkbox || !checkbox.checked) return;
+
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Перший тон
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+    gain1.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.start();
+    osc1.stop(audioCtx.currentTime + 0.15);
+
+    // Другий тон (трохи вищий і з затримкою)
+    setTimeout(() => {
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(880.00, audioCtx.currentTime); // A5
+      gain2.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+      osc2.connect(gain2);
+      gain2.connect(audioCtx.destination);
+      osc2.start();
+      osc2.stop(audioCtx.currentTime + 0.35);
+    }, 80);
+  } catch (e) {
+    console.warn('Не вдалося відтворити звук сповіщення:', e);
+  }
+}
+
 // Отримання списку замовлень з сервера
 async function fetchOrders() {
   try {
     const response = await fetch('/api/orders');
     if (!response.ok) throw new Error('Помилка завантаження даних');
-    orders = await response.json();
+    const data = await response.json();
     
+    // Перевірка на нові замовлення для звукового сигналу
+    const prevIds = new Set(orders.map(o => o.id));
+    const newOrders = data.filter(o => !prevIds.has(o.id));
+    
+    orders = data;
+    
+    if (prevIds.size > 0 && newOrders.length > 0) {
+      playNotificationSound();
+    }
+
     updateFilterCounts();
+    updateStatistics();
     renderOrders();
   } catch (err) {
     console.error('❌ Помилка завантаження замовлень:', err);
@@ -33,11 +82,28 @@ async function fetchOrders() {
       grid.innerHTML = `
         <div class="orders-error" style="grid-column: 1/-1; text-align: center; padding: var(--space-12) var(--space-4);">
           <p style="color: #c0392b; font-weight: 600; font-size: var(--text-lg); margin-bottom: var(--space-2);">Не вдалося завантажити замовлення</p>
-          <span style="color: var(--color-text-secondary); font-size: var(--text-sm);">Перевірте, чи запущено сервер Node.js</span>
+          <span style="color: var(--color-text-secondary); font-size: var(--text-sm);">Перевірте з'єднання або запустіть сервер</span>
         </div>
       `;
     }
   }
+}
+
+// Оновлення статистики дашборду
+function updateStatistics() {
+  const completedOrders = orders.filter(o => o.status === 'completed');
+  
+  const totalRevenue = completedOrders.reduce((sum, order) => {
+    const orderTotal = order.items.reduce((itemSum, item) => itemSum + item.price * item.quantity, 0);
+    return sum + orderTotal;
+  }, 0);
+
+  const count = completedOrders.length;
+  const average = count > 0 ? Math.round(totalRevenue / count) : 0;
+
+  document.getElementById('statsRevenue').textContent = formatPrice(totalRevenue);
+  document.getElementById('statsCount').textContent = count;
+  document.getElementById('statsAverage').textContent = formatPrice(average);
 }
 
 // Оновлення кількості замовлень у табах фільтрів
@@ -70,39 +136,108 @@ async function updateOrderStatus(orderId, newStatus) {
 
     if (!response.ok) throw new Error('Помилка оновлення статусу');
     
-    // Оновлюємо локально для миттєвого рендерингу перед запитом на сервер
     const order = orders.find(o => o.id === orderId);
     if (order) order.status = newStatus;
     
     updateFilterCounts();
+    updateStatistics();
     renderOrders();
-    
-    // Перезавантажуємо з сервера для надійності
     fetchOrders();
   } catch (err) {
     console.error('❌ Не вдалося оновити статус:', err);
-    alert('Помилка оновлення статусу замовлення');
   }
+}
+
+// Кастомний діалог підтвердження
+let currentConfirmAction = null;
+
+function showAdminConfirm(title, message, onConfirm) {
+  const modal = document.getElementById('adminConfirmModal');
+  const titleEl = document.getElementById('confirmTitle');
+  const messageEl = document.getElementById('confirmMessage');
+
+  if (!modal || !titleEl || !messageEl) return;
+
+  titleEl.textContent = title;
+  messageEl.textContent = message;
+  currentConfirmAction = onConfirm;
+
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function initAdminConfirmModal() {
+  const modal = document.getElementById('adminConfirmModal');
+  const cancelBtn = document.getElementById('confirmCancelBtn');
+  const okBtn = document.getElementById('confirmOkBtn');
+
+  if (!modal) return;
+
+  function closeModal() {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    currentConfirmAction = null;
+  }
+
+  cancelBtn?.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  okBtn?.addEventListener('click', () => {
+    if (typeof currentConfirmAction === 'function') {
+      currentConfirmAction();
+    }
+    closeModal();
+  });
 }
 
 // Видалення замовлення
 async function deleteOrder(orderId) {
-  if (!confirm(`Видалити замовлення #${orderId} з бази даних?`)) return;
+  showAdminConfirm(
+    'Видалити замовлення?',
+    `Ви дійсно хочете видалити замовлення #${orderId} з бази даних? Цю дію неможливо скасувати.`,
+    async () => {
+      try {
+        const response = await fetch(`/api/orders/${orderId}`, {
+          method: 'DELETE',
+        });
 
-  try {
-    const response = await fetch(`/api/orders/${orderId}`, {
-      method: 'DELETE',
-    });
+        if (!response.ok) throw new Error('Помилка видалення замовлення');
+        
+        orders = orders.filter(o => o.id !== orderId);
+        updateFilterCounts();
+        updateStatistics();
+        renderOrders();
+      } catch (err) {
+        console.error('❌ Не вдалося видалити замовлення:', err);
+      }
+    }
+  );
+}
 
-    if (!response.ok) throw new Error('Помилка видалення замовлення');
-    
-    orders = orders.filter(o => o.id !== orderId);
-    updateFilterCounts();
-    renderOrders();
-  } catch (err) {
-    console.error('❌ Не вдалося видалити замовлення:', err);
-    alert('Помилка видалення замовлення');
-  }
+// Видалення всіх замовлень
+async function deleteAllOrders() {
+  showAdminConfirm(
+    'Видалити всі замовлення?',
+    'Ви дійсно хочете видалити ВСІ замовлення з бази даних? Це повністю очистить історію та статистику.',
+    async () => {
+      try {
+        const response = await fetch('/api/orders', {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) throw new Error('Помилка видалення всіх замовлень');
+        
+        orders = [];
+        updateFilterCounts();
+        updateStatistics();
+        renderOrders();
+      } catch (err) {
+        console.error('❌ Не вдалося видалити всі замовлення:', err);
+      }
+    }
+  );
 }
 
 // Отримання тексту статусу українською
@@ -122,18 +257,32 @@ function renderOrders() {
   const grid = document.getElementById('ordersGrid');
   if (!grid) return;
 
-  // Фільтруємо
-  const filtered = activeFilter === 'all' 
+  const searchInput = document.getElementById('adminSearchInput');
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+  // Спочатку фільтруємо за статусом табів
+  let filtered = activeFilter === 'all' 
     ? orders 
     : orders.filter(o => o.status === activeFilter);
+
+  // Потім фільтруємо за рядком пошуку
+  if (query) {
+    filtered = filtered.filter(o => {
+      const matchName = o.customer_name.toLowerCase().includes(query);
+      const matchPhone = o.customer_phone.includes(query);
+      const matchId = String(o.id) === query || `#${o.id}` === query;
+      const matchItems = o.items.some(item => item.name.toLowerCase().includes(query));
+      return matchName || matchPhone || matchId || matchItems;
+    });
+  }
 
   grid.innerHTML = '';
 
   if (filtered.length === 0) {
     grid.innerHTML = `
       <div class="orders-empty-state" style="grid-column: 1/-1; text-align: center; padding: var(--space-12) var(--space-4); background: #fff; border-radius: var(--radius-xl); border: 1px solid rgba(11, 59, 36, 0.08);">
-        <p style="font-weight: 600; font-size: var(--text-base); margin-bottom: var(--space-1); color: var(--color-text-primary);">Замовлень немає</p>
-        <span style="font-size: var(--text-xs); color: var(--color-text-muted);">Немає замовлень зі статусом «${getStatusLabel(activeFilter)}»</span>
+        <p style="font-weight: 600; font-size: var(--text-base); margin-bottom: var(--space-1); color: var(--color-text-primary);">Нічого не знайдено</p>
+        <span style="font-size: var(--text-xs); color: var(--color-text-muted);">Спробуйте змінити фільтр або параметри пошуку</span>
       </div>
     `;
     return;
@@ -147,10 +296,8 @@ function renderOrders() {
     const dateStr = formatDate(order.created_at);
     const statusLabel = getStatusLabel(order.status);
     
-    // Розрахунок підсумку замовлення
     const total = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    // Створення елементів списку страв
     const itemsHtml = order.items.map(item => `
       <div class="order-card-item">
         <div class="order-card-item__info">
@@ -161,7 +308,6 @@ function renderOrders() {
       </div>
     `).join('');
 
-    // Створення кнопок управління статусом
     let actionButtonsHtml = '';
     if (order.status === 'new') {
       actionButtonsHtml = `
@@ -243,10 +389,24 @@ document.addEventListener('DOMContentLoaded', () => {
   function initAdmin() {
     overlay.classList.add('hidden');
     initFilterTabs();
+    initAdminConfirmModal();
     
+    // Кнопка оновлення
     const refreshBtn = document.getElementById('refreshBtn');
     refreshBtn?.addEventListener('click', () => {
       fetchOrders();
+    });
+
+    // Кнопка видалення всього
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+    deleteAllBtn?.addEventListener('click', () => {
+      deleteAllOrders();
+    });
+
+    // Пошук в реальному часі
+    const searchInput = document.getElementById('adminSearchInput');
+    searchInput?.addEventListener('input', () => {
+      renderOrders();
     });
 
     fetchOrders();
