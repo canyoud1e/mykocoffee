@@ -17,13 +17,30 @@ function formatDate(dateStr) {
   });
 }
 
+let audioCtx = null;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+// Розблокувати AudioContext при будь-якій взаємодії користувача
+['click', 'keydown', 'touchstart'].forEach(type => {
+  document.addEventListener(type, initAudio, { once: true });
+});
+
 // Програвання звуку при новому замовленні
 function playNotificationSound() {
   const checkbox = document.getElementById('adminSoundCheckbox');
   if (!checkbox || !checkbox.checked) return;
 
   try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
     
     // Перший тон
     const osc1 = audioCtx.createOscillator();
@@ -39,6 +56,7 @@ function playNotificationSound() {
 
     // Другий тон (трохи вищий і з затримкою)
     setTimeout(() => {
+      if (audioCtx.state === 'suspended') return;
       const osc2 = audioCtx.createOscillator();
       const gain2 = audioCtx.createGain();
       osc2.type = 'sine';
