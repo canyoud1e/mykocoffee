@@ -34,6 +34,17 @@ function initAudio() {
     if (audioCtx && audioCtx.state === 'suspended') {
       audioCtx.resume();
     }
+    
+    // Програємо майже беззвучний мікро-тон для примусового розблокування апаратного звуку в Safari/Chrome
+    if (audioCtx && audioCtx.state === 'running') {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.05);
+    }
   } catch (err) {
     console.warn('Помилка ініціалізації AudioContext:', err);
   }
@@ -66,7 +77,7 @@ async function playNotificationSound() {
     const gain1 = audioCtx.createGain();
     osc1.type = 'sine';
     osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-    gain1.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain1.gain.setValueAtTime(0.35, audioCtx.currentTime); // збільшено гучність з 0.08
     gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
     osc1.connect(gain1);
     gain1.connect(audioCtx.destination);
@@ -81,7 +92,7 @@ async function playNotificationSound() {
         const gain2 = audioCtx.createGain();
         osc2.type = 'sine';
         osc2.frequency.setValueAtTime(880.00, audioCtx.currentTime); // A5
-        gain2.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain2.gain.setValueAtTime(0.40, audioCtx.currentTime); // збільшено гучність з 0.12
         gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
         osc2.connect(gain2);
         gain2.connect(audioCtx.destination);
