@@ -27,26 +27,39 @@ let audioCtx = null;
 
 // Ініціалізація та розблокування звуку в браузері
 function initAudio() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume();
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  } catch (err) {
+    console.warn('Помилка ініціалізації AudioContext:', err);
   }
 }
 
 // Додаємо слухачі для розблокування AudioContext при першій же взаємодії
 document.addEventListener('click', initAudio, { once: false });
 document.addEventListener('touchstart', initAudio, { once: false });
+document.addEventListener('mousedown', initAudio, { once: false });
 
 // Програвання звуку при новому замовленні
-function playNotificationSound() {
+async function playNotificationSound() {
   const checkbox = document.getElementById('adminSoundCheckbox');
   if (!checkbox || !checkbox.checked) return;
 
   try {
-    initAudio();
-    if (!audioCtx) return;
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    // Очікуємо пробудження AudioContext
+    if (audioCtx.state === 'suspended') {
+      await audioCtx.resume();
+    }
+    
+    console.log('🔔 Відтворення звукового сигналу нового замовлення. Статус:', audioCtx.state);
 
     // Перший тон
     const osc1 = audioCtx.createOscillator();
@@ -62,17 +75,21 @@ function playNotificationSound() {
 
     // Другий тон (трохи вищий і з затримкою)
     setTimeout(() => {
-      if (!audioCtx || audioCtx.state === 'suspended') return;
-      const osc2 = audioCtx.createOscillator();
-      const gain2 = audioCtx.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(880.00, audioCtx.currentTime); // A5
-      gain2.gain.setValueAtTime(0.12, audioCtx.currentTime);
-      gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
-      osc2.connect(gain2);
-      gain2.connect(audioCtx.destination);
-      osc2.start();
-      osc2.stop(audioCtx.currentTime + 0.35);
+      try {
+        if (!audioCtx || audioCtx.state === 'suspended') return;
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(880.00, audioCtx.currentTime); // A5
+        gain2.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start();
+        osc2.stop(audioCtx.currentTime + 0.35);
+      } catch (err2) {
+        console.warn('Помилка відтворення другого тону:', err2);
+      }
     }, 80);
   } catch (e) {
     console.warn('Не вдалося відтворити звук сповіщення:', e);
