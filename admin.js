@@ -23,14 +23,31 @@ function getAuthHeader() {
   return password ? { 'Authorization': `Bearer ${password}` } : {};
 }
 
+let audioCtx = null;
+
+// Ініціалізація та розблокування звуку в браузері
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+// Додаємо слухачі для розблокування AudioContext при першій же взаємодії
+document.addEventListener('click', initAudio, { once: false });
+document.addEventListener('touchstart', initAudio, { once: false });
+
 // Програвання звуку при новому замовленні
 function playNotificationSound() {
   const checkbox = document.getElementById('adminSoundCheckbox');
   if (!checkbox || !checkbox.checked) return;
 
   try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
+    initAudio();
+    if (!audioCtx) return;
+
     // Перший тон
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
@@ -45,6 +62,7 @@ function playNotificationSound() {
 
     // Другий тон (трохи вищий і з затримкою)
     setTimeout(() => {
+      if (!audioCtx || audioCtx.state === 'suspended') return;
       const osc2 = audioCtx.createOscillator();
       const gain2 = audioCtx.createGain();
       osc2.type = 'sine';
