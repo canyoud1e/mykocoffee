@@ -174,7 +174,7 @@ async function fetchOrders() {
   }
 }
 
-// Оновлення статистики дашборду (AdminLTE Small Boxes)
+// Оновлення статистики дашборду MYKO Coffee
 function updateStatistics() {
   const completedOrders = orders.filter(o => o.status === 'completed');
   
@@ -199,7 +199,7 @@ function updateStatistics() {
   if (newBoxEl) newBoxEl.textContent = newCount;
 }
 
-// Оновлення кількості замовлень у табах фільтрів AdminLTE Card Header
+// Оновлення кількості замовлень у табах фільтрів
 function updateFilterCounts() {
   const counts = {
     all: orders.length,
@@ -250,7 +250,7 @@ async function updateOrderStatus(orderId, newStatus) {
   }
 }
 
-// Кастомний діалог підтвердження AdminLTE
+// Кастомний діалог підтвердження
 function showAdminConfirm(title, message, onConfirm) {
   const titleEl = document.getElementById('confirmTitle');
   const messageEl = document.getElementById('confirmMessage');
@@ -340,7 +340,7 @@ async function deleteAllOrders() {
   );
 }
 
-// Отримання badge статусу AdminLTE
+// Отримання badge статусу
 function getStatusBadgeHtml(status) {
   switch (status) {
     case 'new': return '<span class="badge bg-danger">Нове</span>';
@@ -423,7 +423,7 @@ function showOrderDetailsModal(orderId) {
   }
 }
 
-// Рендеринг таблиці замовлень в AdminLTE 4 Card Table
+// Рендеринг таблиці замовлень
 function renderOrdersTable() {
   const tbody = document.getElementById('ordersTableBody');
   if (!tbody) return;
@@ -545,7 +545,7 @@ function initFilterTabs() {
   });
 }
 
-// Ініціалізація сторінки AdminLTE 4
+// Ініціалізація сторінки адмін-панелі
 document.addEventListener('DOMContentLoaded', () => {
   const overlay = document.getElementById('adminLoginOverlay');
   const loginForm = document.getElementById('adminLoginForm');

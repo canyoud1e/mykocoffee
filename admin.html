@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AdminLTE 4 — MYKO Coffee Admin Panel</title>
+  <title>Панель управління замовленнями | MYKO Coffee</title>
 
-  <!-- Google Fonts: Outfit & Inter (matching MYKO Coffee website) -->
+  <!-- Google Fonts: Outfit, Playfair Display & Inter (matching main branch) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
   <!-- Bootstrap 5 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -17,59 +17,66 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- AdminLTE 4 CSS -->
+  <!-- Core Layout Engine -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta2/dist/css/adminlte.min.css">
 
-  <!-- MYKO Coffee Brand Overrides for AdminLTE 4 -->
+  <!-- MYKO Coffee Main Theme Design System -->
   <style>
     :root {
-      --myko-dark: #18181b;
-      --myko-mocha: #27272a;
+      --myko-primary: #0b3b24;
+      --myko-dark-roast: #201715;
       --myko-gold: #d97706;
-      --myko-cream: #fafafa;
-      --myko-border: #e4e4e7;
-      --font-heading: 'Outfit', sans-serif;
+      --myko-cream-bg: #fcfbf9;
+      --myko-card-bg: #f8f6f0;
+      --myko-border: #e5e5e7;
+      --font-heading: 'Outfit', 'Playfair Display', sans-serif;
       --font-body: 'Inter', sans-serif;
     }
 
     body {
       font-family: var(--font-body);
-      background-color: #f4f4f5;
-      color: #18181b;
+      background-color: var(--myko-cream-bg);
+      color: var(--myko-dark-roast);
     }
 
     h1, h2, h3, h4, h5, h6, .brand-text, .nav-link, .btn {
       font-family: var(--font-heading);
     }
 
-    /* AdminLTE 4 Sidebar Brand Styling */
+    /* MYKO Coffee Header & Sidebar Styling */
+    .app-header {
+      background-color: #ffffff !important;
+      border-bottom: 1px solid var(--myko-border) !important;
+    }
+    
     .app-sidebar {
-      background-color: var(--myko-dark) !important;
+      background-color: var(--myko-primary) !important;
     }
     .sidebar-brand {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+      background-color: rgba(0, 0, 0, 0.15) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
     .brand-text {
       font-weight: 800;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.01em;
     }
 
     .nav-pills .nav-link.active {
-      background-color: var(--myko-dark) !important;
+      background-color: var(--myko-primary) !important;
       color: #ffffff !important;
     }
 
-    /* MYKO Custom Small Boxes (Stat Cards) */
+    /* Small Stat Boxes - Main Branch Color Palette */
     .box-revenue {
-      background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+      background: linear-gradient(135deg, #0b3b24 0%, #135d3a 100%);
       color: #ffffff;
     }
     .box-orders {
-      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      background: linear-gradient(135deg, #201715 0%, #3b2824 100%);
       color: #ffffff;
     }
     .box-average {
-      background: linear-gradient(135deg, #3f3f46 0%, #27272a 100%);
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
       color: #ffffff;
     }
     .box-new {
@@ -80,15 +87,15 @@
     .status-badge-new { background-color: #dc2626; color: #fff; }
     .status-badge-preparing { background-color: #d97706; color: #fff; }
     .status-badge-ready { background-color: #2563eb; color: #fff; }
-    .status-badge-completed { background-color: #16a34a; color: #fff; }
+    .status-badge-completed { background-color: #0b3b24; color: #fff; }
     .status-badge-cancelled { background-color: #71717a; color: #fff; }
 
     /* Login Overlay */
     .admin-login-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(24, 24, 27, 0.92);
-      backdrop-filter: blur(8px);
+      background: rgba(11, 59, 36, 0.94);
+      backdrop-filter: blur(10px);
       z-index: 9999;
       display: flex;
       align-items: center;
@@ -104,31 +111,31 @@
     }
 
     .btn-myko {
-      background-color: var(--myko-dark);
+      background-color: var(--myko-primary);
       color: #ffffff;
-      border: 1px solid var(--myko-dark);
+      border: 1px solid var(--myko-primary);
     }
     .btn-myko:hover {
-      background-color: var(--myko-mocha);
+      background-color: #135d3a;
       color: #ffffff;
     }
   </style>
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
-  <!-- ЕКРАН ВХОДУ (MYKO BRANDED LOGIN) -->
+  <!-- ЕКРАН ВХОДУ (MYKO LOGIN CARD) -->
   <div class="admin-login-overlay" id="adminLoginOverlay">
     <div class="login-box">
       <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-        <div class="card-header text-center py-4 bg-dark text-white border-0">
+        <div class="card-header text-center py-4 text-white border-0" style="background-color: var(--myko-primary);">
           <div class="d-inline-flex align-items-center justify-content-center bg-white text-dark rounded-circle mb-2" style="width: 58px; height: 58px;">
-            <i class="fa-solid fa-mug-hot fa-xl"></i>
+            <i class="fa-solid fa-mug-hot fa-xl" style="color: var(--myko-primary);"></i>
           </div>
           <h3 class="h4 mb-0 brand-text text-white">MYKO COFFEE</h3>
-          <small class="text-white-50">Панель управління замовленнями</small>
+          <small class="text-white-50">Адмін панель</small>
         </div>
         <div class="card-body login-card-body p-4 bg-white">
-          <p class="login-box-msg text-secondary small fw-medium mb-3 text-center">Авторизуйтесь для доступу до адмінки</p>
+          <p class="login-box-msg text-secondary small fw-bold mb-3 text-center text-uppercase tracking-wider">Адмін панель</p>
           
           <form id="adminLoginForm" autocomplete="off">
             <div class="input-group mb-3">
@@ -154,7 +161,7 @@
     </div>
   </div>
 
-  <!-- ОСНОВНА СТРУКТУРА ADMINLTE 4 -->
+  <!-- ОСНОВНА СТРУКТУРА -->
   <div class="app-wrapper">
 
     <!-- ВЕРХНЯ НАВІГАЦІЙНА ПАНЕЛЬ (TOP NAVBAR) -->
@@ -259,14 +266,14 @@
           <div class="row align-items-center">
             <div class="col-sm-6">
               <h3 class="mb-0 fw-bold text-dark">
-                <i class="bi bi-kanban me-2 text-warning"></i>Панель управління замовленнями
+                <i class="bi bi-kanban me-2" style="color: var(--myko-primary);"></i>Панель управління замовленнями
               </h3>
-              <p class="text-muted small mb-0">Стилізований шаблон AdminLTE 4 під брендинг MYKO Coffee</p>
+              <p class="text-muted small mb-0">Моніторинг та обробка замовлень кав'ярні та Нової Пошти</p>
             </div>
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-end bg-transparent p-0 mb-0 small">
                 <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-dark">MYKO</a></li>
-                <li class="breadcrumb-item active" aria-current="page">AdminLTE 4</li>
+                <li class="breadcrumb-item active" aria-current="page">Панель управління</li>
               </ol>
             </div>
           </div>
@@ -277,7 +284,7 @@
       <div class="app-content">
         <div class="container-fluid">
 
-          <!-- 4 СТАТИСТИЧНІ КАРТКИ (MYKO BRANDED SMALL BOXES) -->
+          <!-- 4 СТАТИСТИЧНІ КАРТКИ -->
           <div class="row g-3 mb-4">
             
             <!-- Каса -->
@@ -334,7 +341,7 @@
 
           </div>
 
-          <!-- КАРТКА УПРАВЛІННЯ ТА ТАБЛИЦЯ (ADMINLTE CARD & TABLE) -->
+          <!-- КАРТКА УПРАВЛІННЯ ТА ТАБЛИЦЯ -->
           <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
             
             <!-- Card Header -->
@@ -417,16 +424,16 @@
     <!-- FOOTER -->
     <footer class="app-footer bg-white border-top py-3 px-4 text-secondary small d-flex justify-content-between">
       <div>
-        <strong>MYKO Coffee &copy; 2026</strong> · Брендована адмін-панель AdminLTE 4
+        <strong>MYKO Coffee &copy; 2026</strong> · Панель управління замовленнями
       </div>
       <div>
-        Версія 4.0-beta2
+        Кав'ярня & Інтернет-магазин
       </div>
     </footer>
 
   </div>
 
-  <!-- МОДАЛЬНЕ ВІКНО ДЕТАЛЕЙ ЗАМОВЛЕННЯ (BOOTSTRAP 5 MODAL) -->
+  <!-- МОДАЛЬНЕ ВІКНО ДЕТАЛЕЙ ЗАМОВЛЕННЯ -->
   <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content shadow-lg border-0 rounded-4 overflow-hidden">
@@ -465,7 +472,7 @@
 
   <!-- Bootstrap 5 Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- AdminLTE 4 JS -->
+  <!-- Core Layout JS Engine -->
   <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta2/dist/js/adminlte.min.js"></script>
 
   <!-- Frontend Logic -->
