@@ -376,9 +376,9 @@ function showOrderDetailsModal(orderId) {
 
   const commentText = order.comment || order.orderComment || order.wishes || '';
   const commentHtml = commentText ? `
-    <div class="alert alert-warning border-0 text-dark p-3 mb-3 rounded-3" style="background-color: #fff8e1;">
-      <h6 class="fw-bold mb-1 text-warning-emphasis"><i class="bi bi-chat-left-dots me-1.5"></i> Побажання / Коментар клієнта:</h6>
-      <p class="mb-0 small fw-medium text-dark">${commentText}</p>
+    <div class="alert alert-warning border border-warning-subtle text-dark p-3 mb-3 rounded-3 shadow-sm" style="background-color: #fff8e1;">
+      <h6 class="fw-bold mb-2 text-warning-emphasis"><i class="bi bi-chat-left-dots-fill me-1.5"></i> Побажання / Коментар клієнта:</h6>
+      <p class="mb-0 fw-medium text-dark" style="white-space: pre-wrap; word-break: break-word; font-size: 0.95rem; line-height: 1.4;">${commentText}</p>
     </div>
   ` : '';
 
@@ -441,7 +441,8 @@ function renderOrdersTable() {
       const matchPhone = (o.customer_phone || '').includes(query);
       const matchId = String(o.id) === query || `#${o.id}` === query;
       const matchItems = (o.items || []).some(item => (item.name || '').toLowerCase().includes(query));
-      return matchName || matchPhone || matchId || matchItems;
+      const matchComment = (o.comment || o.orderComment || o.wishes || '').toLowerCase().includes(query);
+      return matchName || matchPhone || matchId || matchItems || matchComment;
     });
   }
 
@@ -470,7 +471,11 @@ function renderOrdersTable() {
 
     const itemsSummary = (order.items || []).map(i => `${i.name} (${i.quantity} шт)`).join(', ') || 'Кава Brazil Mogiana';
     const commentText = order.comment || order.orderComment || order.wishes || '';
-    const commentBadge = commentText ? `<div class="text-warning-emphasis small mt-1 fw-semibold text-truncate" style="max-width:210px;" title="${commentText}"><i class="bi bi-chat-left-dots me-1"></i>${commentText}</div>` : '';
+    const commentBadge = commentText ? `
+      <div class="p-1.5 px-2 mt-1 rounded-2 bg-warning-subtle text-dark border border-warning-subtle small fw-medium" style="white-space: normal; word-break: break-word; font-size: 0.82rem; line-height: 1.3;" onclick="showOrderDetailsModal('${order.id}')" role="button" title="Натисніть для перегляду деталей">
+        <i class="bi bi-chat-left-dots-fill text-warning me-1"></i>💬 ${commentText}
+      </div>
+    ` : '';
 
     let actionButtonsHtml = '';
     if (order.status === 'new') {
@@ -516,7 +521,7 @@ function renderOrdersTable() {
         <span class="d-block fw-semibold text-dark">${order.pickup_date || order.cityName || 'Миколаїв'}</span>
         <span class="text-muted small">${order.pickup_time || order.branchName || 'Відділення №1'}</span>
       </td>
-      <td class="small text-muted" style="max-width: 220px;">
+      <td class="small text-muted" style="min-width: 200px; max-width: 320px;">
         <span class="d-block text-truncate fw-medium text-dark">${itemsSummary}</span>
         ${commentBadge}
       </td>
