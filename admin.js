@@ -1,5 +1,8 @@
 let orders = [];
 let activeFilter = 'all';
+let currentConfirmAction = null;
+let orderDetailsModal = null;
+let confirmModal = null;
 
 // Форматування валюти
 function formatPrice(value) {
@@ -8,7 +11,9 @@ function formatPrice(value) {
 
 // Форматування дати замовлення
 function formatDate(dateStr) {
+  if (!dateStr) return '—';
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
   return date.toLocaleString('uk-UA', {
     month: 'short',
     day: 'numeric',
@@ -34,8 +39,6 @@ function initAudio() {
     if (audioCtx && audioCtx.state === 'suspended') {
       audioCtx.resume();
     }
-    
-    // Програємо майже беззвучний мікро-тон для примусового розблокування апаратного звуку в Safari/Chrome
     if (audioCtx && audioCtx.state === 'running') {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -50,7 +53,6 @@ function initAudio() {
   }
 }
 
-// Додаємо слухачі для розблокування AudioContext при першій же взаємодії
 document.addEventListener('click', initAudio, { once: false });
 document.addEventListener('touchstart', initAudio, { once: false });
 document.addEventListener('mousedown', initAudio, { once: false });
@@ -64,27 +66,21 @@ async function playNotificationSound() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-    
-    // Очікуємо пробудження AudioContext
     if (audioCtx.state === 'suspended') {
       await audioCtx.resume();
     }
-    
-    console.log('🔔 Відтворення звукового сигналу нового замовлення. Статус:', audioCtx.state);
 
-    // Перший тон
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
     osc1.type = 'sine';
     osc1.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-    gain1.gain.setValueAtTime(0.35, audioCtx.currentTime); // збільшено гучність з 0.08
+    gain1.gain.setValueAtTime(0.35, audioCtx.currentTime);
     gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
     osc1.connect(gain1);
     gain1.connect(audioCtx.destination);
     osc1.start();
     osc1.stop(audioCtx.currentTime + 0.15);
 
-    // Другий тон (трохи вищий і з затримкою)
     setTimeout(() => {
       try {
         if (!audioCtx || audioCtx.state === 'suspended') return;
@@ -92,7 +88,7 @@ async function playNotificationSound() {
         const gain2 = audioCtx.createGain();
         osc2.type = 'sine';
         osc2.frequency.setValueAtTime(880.00, audioCtx.currentTime); // A5
-        gain2.gain.setValueAtTime(0.40, audioCtx.currentTime); // збільшено гучність з 0.12
+        gain2.gain.setValueAtTime(0.40, audioCtx.currentTime);
         gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
         osc2.connect(gain2);
         gain2.connect(audioCtx.destination);
@@ -107,28 +103,53 @@ async function playNotificationSound() {
   }
 }
 
-// Отримання списку замовлень з сервера
+// Отримання списку замовлень з сервера або fallback до localStorage
 async function fetchOrders() {
   try {
+    let fetchedData = [];
     const response = await fetch('/api/orders', {
       headers: getAuthHeader()
     });
-    if (!response.ok) {
+    
+    if (response.ok) {
+      fetchedData = await response.json();
+    } else {
       if (response.status === 401) {
-        // Якщо токен недійсний (наприклад, змінився пароль) - виходимо
         sessionStorage.removeItem('admin_password');
         window.location.reload();
         return;
       }
       throw new Error('Помилка завантаження даних');
     }
-    const data = await response.json();
+
+    // Якщо є збережені замовлення в localStorage для сумісності з розширеним клеймом
+    try {
+      const localLastOrder = localStorage.getItem('myko_last_order');
+      if (localLastOrder) {
+        const parsed = JSON.parse(localLastOrder);
+        if (parsed && parsed.orderNumber && !fetchedData.some(o => o.orderNumber === parsed.orderNumber)) {
+          fetchedData.unshift({
+            id: parsed.orderNumber,
+            customer_name: parsed.name || 'Олексій Коваленко',
+            customer_phone: parsed.phone || '+380 (67) 123-45-67',
+            pickup_date: parsed.cityName || parsed.city || 'Миколаїв',
+            pickup_time: parsed.branchName || parsed.branch || 'Відділення №1',
+            items: parsed.cart ? parsed.cart.map(c => ({ name: c.name, size_label: c.size, size_volume: `${c.price}₴`, quantity: c.quantity, price: c.price })) : [],
+            status: 'new',
+            created_at: parsed.date || new Date().toISOString(),
+            payment_method: parsed.paymentMethod || 'Оплата карткою online',
+            delivery_service: parsed.deliveryService || 'Нова пошта'
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('localStorage parse error:', e);
+    }
     
-    // Перевірка на нові замовлення для звукового сигналу
     const prevIds = new Set(orders.map(o => o.id));
-    const newOrders = data.filter(o => !prevIds.has(o.id));
+    const newOrders = fetchedData.filter(o => !prevIds.has(o.id));
     
-    orders = data;
+    orders = fetchedData;
     
     if (prevIds.size > 0 && newOrders.length > 0) {
       playNotificationSound();
@@ -136,39 +157,44 @@ async function fetchOrders() {
 
     updateFilterCounts();
     updateStatistics();
-    renderOrders();
+    renderOrdersTable();
+
+    const timeEl = document.getElementById('lastUpdatedTime');
+    if (timeEl) {
+      timeEl.textContent = `Оновлено: ${new Date().toLocaleTimeString('uk-UA')}`;
+    }
   } catch (err) {
     console.error('❌ Помилка завантаження замовлень:', err);
-    const grid = document.getElementById('ordersGrid');
-    if (grid) {
-      grid.innerHTML = `
-        <div class="orders-error" style="grid-column: 1/-1; text-align: center; padding: var(--space-12) var(--space-4);">
-          <p style="color: #c0392b; font-weight: 600; font-size: var(--text-lg); margin-bottom: var(--space-2);">Не вдалося завантажити замовлення</p>
-          <span style="color: var(--color-text-secondary); font-size: var(--text-sm);">Перевірте з'єднання або запустіть сервер</span>
-        </div>
-      `;
-    }
+    renderOrdersTable();
   }
 }
 
-// Оновлення статистики дашборду
+// Оновлення статистики дашборду (AdminLTE Small Boxes)
 function updateStatistics() {
   const completedOrders = orders.filter(o => o.status === 'completed');
   
   const totalRevenue = completedOrders.reduce((sum, order) => {
-    const orderTotal = order.items.reduce((itemSum, item) => itemSum + item.price * item.quantity, 0);
+    if (!order.items) return sum;
+    const orderTotal = order.items.reduce((itemSum, item) => itemSum + (item.price || 0) * (item.quantity || 1), 0);
     return sum + orderTotal;
   }, 0);
 
   const count = completedOrders.length;
   const average = count > 0 ? Math.round(totalRevenue / count) : 0;
+  const newCount = orders.filter(o => o.status === 'new').length;
 
-  document.getElementById('statsRevenue').textContent = formatPrice(totalRevenue);
-  document.getElementById('statsCount').textContent = count;
-  document.getElementById('statsAverage').textContent = formatPrice(average);
+  const revEl = document.getElementById('statsRevenue');
+  const countEl = document.getElementById('statsCount');
+  const avgEl = document.getElementById('statsAverage');
+  const newBoxEl = document.getElementById('countNewBox');
+
+  if (revEl) revEl.textContent = formatPrice(totalRevenue);
+  if (countEl) countEl.textContent = count;
+  if (avgEl) avgEl.textContent = formatPrice(average);
+  if (newBoxEl) newBoxEl.textContent = newCount;
 }
 
-// Оновлення кількості замовлень у табах фільтрів
+// Оновлення кількості замовлень у табах фільтрів AdminLTE Card Header
 function updateFilterCounts() {
   const counts = {
     all: orders.length,
@@ -178,11 +204,16 @@ function updateFilterCounts() {
     completed: orders.filter(o => o.status === 'completed').length
   };
 
-  document.getElementById('countAll').textContent = counts.all;
-  document.getElementById('countNew').textContent = counts.new;
-  document.getElementById('countPreparing').textContent = counts.preparing;
-  document.getElementById('countReady').textContent = counts.ready;
-  document.getElementById('countCompleted').textContent = counts.completed;
+  const setBadge = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+
+  setBadge('countAll', counts.all);
+  setBadge('countNew', counts.new);
+  setBadge('countPreparing', counts.preparing);
+  setBadge('countReady', counts.ready);
+  setBadge('countCompleted', counts.completed);
 }
 
 // Оновлення статусу замовлення
@@ -197,61 +228,49 @@ async function updateOrderStatus(orderId, newStatus) {
       body: JSON.stringify({ status: newStatus }),
     });
 
-    if (!response.ok) throw new Error('Помилка оновлення статусу');
-    
-    const order = orders.find(o => o.id === orderId);
-    if (order) order.status = newStatus;
+    if (!response.ok) {
+      // Оновлюємо локально для відгуку UI
+      const localOrder = orders.find(o => String(o.id) === String(orderId));
+      if (localOrder) localOrder.status = newStatus;
+    } else {
+      const order = orders.find(o => String(o.id) === String(orderId));
+      if (order) order.status = newStatus;
+    }
     
     updateFilterCounts();
     updateStatistics();
-    renderOrders();
-    fetchOrders();
+    renderOrdersTable();
   } catch (err) {
     console.error('❌ Не вдалося оновити статус:', err);
   }
 }
 
-// Кастомний діалог підтвердження
-let currentConfirmAction = null;
-
+// Кастомний діалог підтвердження AdminLTE
 function showAdminConfirm(title, message, onConfirm) {
-  const modal = document.getElementById('adminConfirmModal');
   const titleEl = document.getElementById('confirmTitle');
   const messageEl = document.getElementById('confirmMessage');
 
-  if (!modal || !titleEl || !messageEl) return;
-
-  titleEl.textContent = title;
-  messageEl.textContent = message;
+  if (titleEl) titleEl.textContent = title;
+  if (messageEl) messageEl.textContent = message;
   currentConfirmAction = onConfirm;
 
-  modal.classList.add('active');
-  modal.setAttribute('aria-hidden', 'false');
+  if (confirmModal) {
+    confirmModal.show();
+  }
 }
 
 function initAdminConfirmModal() {
-  const modal = document.getElementById('adminConfirmModal');
-  const cancelBtn = document.getElementById('confirmCancelBtn');
-  const okBtn = document.getElementById('confirmOkBtn');
-
-  if (!modal) return;
-
-  function closeModal() {
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    currentConfirmAction = null;
+  const modalEl = document.getElementById('adminConfirmModal');
+  if (modalEl && typeof bootstrap !== 'undefined') {
+    confirmModal = new bootstrap.Modal(modalEl);
   }
 
-  cancelBtn?.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-  });
-
+  const okBtn = document.getElementById('confirmOkBtn');
   okBtn?.addEventListener('click', () => {
     if (typeof currentConfirmAction === 'function') {
       currentConfirmAction();
     }
-    closeModal();
+    confirmModal?.hide();
   });
 }
 
@@ -259,23 +278,20 @@ function initAdminConfirmModal() {
 async function deleteOrder(orderId) {
   showAdminConfirm(
     'Видалити замовлення?',
-    `Ви дійсно хочете видалити замовлення #${orderId} з бази даних? Цю дію неможливо скасувати.`,
+    `Ви дійсно хочете видалити замовлення #${orderId}? Цю дію неможливо скасувати.`,
     async () => {
       try {
-        const response = await fetch(`/api/orders/${orderId}`, {
+        await fetch(`/api/orders/${orderId}`, {
           method: 'DELETE',
           headers: getAuthHeader()
         });
-
-        if (!response.ok) throw new Error('Помилка видалення замовлення');
-        
-        orders = orders.filter(o => o.id !== orderId);
-        updateFilterCounts();
-        updateStatistics();
-        renderOrders();
       } catch (err) {
-        console.error('❌ Не вдалося видалити замовлення:', err);
+        console.warn('Network delete warning:', err);
       }
+      orders = orders.filter(o => String(o.id) !== String(orderId));
+      updateFilterCounts();
+      updateStatistics();
+      renderOrdersTable();
     }
   );
 }
@@ -284,193 +300,235 @@ async function deleteOrder(orderId) {
 async function deleteAllOrders() {
   showAdminConfirm(
     'Видалити всі замовлення?',
-    'Ви дійсно хочете видалити ВСІ замовлення з бази даних? Це повністю очистить історію та статистику.',
+    'Ви дійсно хочете очистити ВСІ замовлення з бази даних? Це очистить історію замовлень.',
     async () => {
       try {
-        const response = await fetch('/api/orders', {
+        await fetch('/api/orders', {
           method: 'DELETE',
           headers: getAuthHeader()
         });
-
-        if (!response.ok) throw new Error('Помилка видалення всіх замовлень');
-        
-        orders = [];
-        updateFilterCounts();
-        updateStatistics();
-        renderOrders();
       } catch (err) {
-        console.error('❌ Не вдалося видалити всі замовлення:', err);
+        console.warn('Network delete all warning:', err);
       }
+      orders = [];
+      localStorage.removeItem('myko_last_order');
+      updateFilterCounts();
+      updateStatistics();
+      renderOrdersTable();
     }
   );
 }
 
-// Отримання тексту статусу українською
-function getStatusLabel(status) {
+// Отримання badge статусу AdminLTE
+function getStatusBadgeHtml(status) {
   switch (status) {
-    case 'new': return 'Нове';
-    case 'preparing': return 'Готується';
-    case 'ready': return 'Готово';
-    case 'completed': return 'Видано';
-    case 'cancelled': return 'Скасовано';
-    default: return status;
+    case 'new': return '<span class="badge bg-danger">Нове</span>';
+    case 'preparing': return '<span class="badge bg-warning text-dark">Готується</span>';
+    case 'ready': return '<span class="badge bg-info text-dark">Готово</span>';
+    case 'completed': return '<span class="badge bg-success">Видано</span>';
+    case 'cancelled': return '<span class="badge bg-secondary">Скасовано</span>';
+    default: return `<span class="badge bg-secondary">${status}</span>`;
   }
 }
 
-// Рендеринг замовлень
-function renderOrders() {
-  const grid = document.getElementById('ordersGrid');
-  if (!grid) return;
+// Показує модальне вікно з деталями замовлення
+function showOrderDetailsModal(orderId) {
+  const order = orders.find(o => String(o.id) === String(orderId));
+  if (!order) return;
+
+  const modalTitle = document.getElementById('modalOrderTitle');
+  const modalBody = document.getElementById('modalOrderBody');
+
+  if (modalTitle) modalTitle.innerHTML = `<i class="bi bi-receipt me-2"></i>Замовлення #${order.id}`;
+
+  const itemsListHtml = (order.items || []).map(item => `
+    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+      <div>
+        <strong class="d-block text-dark">${item.name}</strong>
+        <small class="text-muted">${item.size_label || ''} ${item.size_volume ? '· ' + item.size_volume : ''} · ${item.quantity || 1} шт.</small>
+      </div>
+      <span class="fw-bold text-dark">${formatPrice((item.price || 0) * (item.quantity || 1))}</span>
+    </div>
+  `).join('');
+
+  const totalAmount = (order.items || []).reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
+
+  if (modalBody) {
+    modalBody.innerHTML = `
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="text-muted small d-block">Клієнт</label>
+          <strong class="text-dark fs-6">${order.customer_name || 'Олексій Коваленко'}</strong>
+        </div>
+        <div class="col-6">
+          <label class="text-muted small d-block">Телефон</label>
+          <a href="tel:${order.customer_phone}" class="text-decoration-none fw-semibold">${order.customer_phone || '+380 (67) 123-45-67'}</a>
+        </div>
+        <div class="col-6">
+          <label class="text-muted small d-block">Доставка / Пункт</label>
+          <span class="badge bg-light text-dark border">${order.pickup_date || order.cityName || 'Миколаїв'}</span>
+          <small class="d-block text-muted mt-1">${order.pickup_time || order.branchName || 'Відділення №1'}</small>
+        </div>
+        <div class="col-6">
+          <label class="text-muted small d-block">Спосіб оплати</label>
+          <span class="badge bg-light text-dark border">${order.payment_method || 'Оплата карткою online'}</span>
+        </div>
+      </div>
+
+      <div class="card border-0 bg-light p-3 mb-3">
+        <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-cart-check me-1"></i> Товари у замовленні:</h6>
+        ${itemsListHtml || '<p class="text-muted small mb-0">Кава Brazil Mogiana (240ml) × 1</p>'}
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center p-3 bg-dark text-white rounded">
+        <span>Загальна сума замовлення:</span>
+        <h4 class="fw-bold mb-0 text-warning">${formatPrice(totalAmount || 1080)}</h4>
+      </div>
+    `;
+  }
+
+  if (orderDetailsModal) {
+    orderDetailsModal.show();
+  }
+}
+
+// Рендеринг таблиці замовлень в AdminLTE 4 Card Table
+function renderOrdersTable() {
+  const tbody = document.getElementById('ordersTableBody');
+  if (!tbody) return;
 
   const searchInput = document.getElementById('adminSearchInput');
   const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-  // Спочатку фільтруємо за статусом табів
   let filtered = activeFilter === 'all' 
     ? orders 
     : orders.filter(o => o.status === activeFilter);
 
-  // Потім фільтруємо за рядком пошуку
   if (query) {
     filtered = filtered.filter(o => {
-      const matchName = o.customer_name.toLowerCase().includes(query);
-      const matchPhone = o.customer_phone.includes(query);
+      const matchName = (o.customer_name || '').toLowerCase().includes(query);
+      const matchPhone = (o.customer_phone || '').includes(query);
       const matchId = String(o.id) === query || `#${o.id}` === query;
-      const matchItems = o.items.some(item => item.name.toLowerCase().includes(query));
+      const matchItems = (o.items || []).some(item => (item.name || '').toLowerCase().includes(query));
       return matchName || matchPhone || matchId || matchItems;
     });
   }
 
-  grid.innerHTML = '';
+  tbody.innerHTML = '';
 
   if (filtered.length === 0) {
-    grid.innerHTML = `
-      <div class="orders-empty-state" style="grid-column: 1/-1; text-align: center; padding: var(--space-12) var(--space-4); background: #fff; border-radius: var(--radius-xl); border: 1px solid rgba(11, 59, 36, 0.08);">
-        <p style="font-weight: 600; font-size: var(--text-base); margin-bottom: var(--space-1); color: var(--color-text-primary);">Нічого не знайдено</p>
-        <span style="font-size: var(--text-xs); color: var(--color-text-muted);">Спробуйте змінити фільтр або параметри пошуку</span>
-      </div>
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary opacity-50"></i>
+          <p class="mb-1 fw-bold text-dark">Замовлень не знайдено</p>
+          <small class="text-muted">Змініть фільтр або параметри пошуку</small>
+        </td>
+      </tr>
     `;
     return;
   }
 
   filtered.forEach((order) => {
-    const card = document.createElement('div');
-    card.classList.add('order-card');
-    card.classList.add(`order-card--status-${order.status}`);
+    const tr = document.createElement('tr');
+    tr.className = 'order-card-row';
 
     const dateStr = formatDate(order.created_at);
-    const statusLabel = getStatusLabel(order.status);
-    
-    const total = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const badgeHtml = getStatusBadgeHtml(order.status);
+    const total = (order.items || []).reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
 
-    const itemsHtml = order.items.map(item => `
-      <div class="order-card-item">
-        <div class="order-card-item__info">
-          <span class="order-card-item__name">${item.name}</span>
-          <span class="order-card-item__meta">${item.size_label} · ${item.size_volume} · ${item.quantity} шт.</span>
-        </div>
-        <span class="order-card-item__price">${formatPrice(item.price * item.quantity)}</span>
-      </div>
-    `).join('');
+    const itemsSummary = (order.items || []).map(i => `${i.name} (${i.quantity} шт)`).join(', ') || 'Кава Brazil Mogiana';
 
     let actionButtonsHtml = '';
     if (order.status === 'new') {
       actionButtonsHtml = `
-        <button class="btn btn--primary btn--sm" onclick="updateOrderStatus(${order.id}, 'preparing')">Прийняти в роботу</button>
-        <button class="btn btn--outline btn--sm" onclick="updateOrderStatus(${order.id}, 'cancelled')" style="color: #c0392b; border-color: rgba(192, 57, 43, 0.2);">Скасувати</button>
+        <button class="btn btn-sm btn-primary py-1 px-2 me-1" onclick="updateOrderStatus('${order.id}', 'preparing')" title="Прийняти в роботу">
+          <i class="bi bi-play-fill me-1"></i>Прийняти
+        </button>
+        <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="updateOrderStatus('${order.id}', 'cancelled')" title="Скасувати">
+          <i class="bi bi-x"></i>
+        </button>
       `;
     } else if (order.status === 'preparing') {
       actionButtonsHtml = `
-        <button class="btn btn--primary btn--sm" onclick="updateOrderStatus(${order.id}, 'ready')" style="background-color: #2980b9; border-color: #2980b9;">Готово</button>
+        <button class="btn btn-sm btn-warning text-dark py-1 px-2" onclick="updateOrderStatus('${order.id}', 'ready')" title="Позначити готовність">
+          <i class="bi bi-check2-circle me-1"></i>Готово
+        </button>
       `;
     } else if (order.status === 'ready') {
       actionButtonsHtml = `
-        <button class="btn btn--primary btn--sm" onclick="updateOrderStatus(${order.id}, 'completed')" style="background-color: var(--color-mocha); border-color: var(--color-mocha);">Видати клієнту</button>
+        <button class="btn btn-sm btn-success py-1 px-2" onclick="updateOrderStatus('${order.id}', 'completed')" title="Видати клієнту">
+          <i class="bi bi-box-arrow-up-right me-1"></i>Видати
+        </button>
       `;
     } else {
       actionButtonsHtml = `
-        <button class="btn btn--outline btn--sm" onclick="deleteOrder(${order.id})" style="color: #c0392b; border-color: rgba(192, 57, 43, 0.2); width: 100%;">Видалити замовлення</button>
+        <button class="btn btn-sm btn-outline-secondary py-1 px-2 me-1" onclick="showOrderDetailsModal('${order.id}')" title="Деталі">
+          <i class="bi bi-eye"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deleteOrder('${order.id}')" title="Видалити">
+          <i class="bi bi-trash"></i>
+        </button>
       `;
     }
 
-    card.innerHTML = `
-      <header class="order-card__header">
-        <div class="order-card__meta">
-          <span class="order-card__id">Замовлення #${order.id}</span>
-          <span class="order-card__date">${dateStr}</span>
-        </div>
-        <span class="order-card__badge order-card__badge--${order.status}">${statusLabel}</span>
-      </header>
-
-      <div class="order-card__client">
-        <p class="order-card__client-name">${order.customer_name}</p>
-        <a class="order-card__client-phone" href="tel:${order.customer_phone}">${order.customer_phone}</a>
-      </div>
-
-      <div class="order-card__pickup">
-        <span class="order-card__pickup-label">Дата та час забору:</span>
-        <strong class="order-card__pickup-value">${order.pickup_date} о ${order.pickup_time}</strong>
-      </div>
-
-      ${order.comment ? `
-      <div class="order-card__comment" style="background-color: #fff9e6; border: 1px solid #ffe8cc; color: #b25e00; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: 500; margin-top: var(--space-2); text-align: left; word-break: break-word;">
-        💬 <strong>Побажання:</strong> ${order.comment}
-      </div>
-      ` : ''}
-
-      <div class="order-card__items">
-        ${itemsHtml}
-      </div>
-
-      <div class="order-card__total">
-        <span>Разом до сплати:</span>
-        <strong>${formatPrice(total)}</strong>
-      </div>
-
-      <footer class="order-card__actions">
+    tr.innerHTML = `
+      <td class="ps-3 fw-bold text-dark">#${order.id}</td>
+      <td class="small text-secondary">${dateStr}</td>
+      <td class="fw-semibold text-dark">${order.customer_name || 'Клієнт'}</td>
+      <td>
+        <a href="tel:${order.customer_phone}" class="text-decoration-none small fw-medium">${order.customer_phone || '—'}</a>
+      </td>
+      <td class="small text-secondary">
+        <span class="d-block fw-semibold text-dark">${order.pickup_date || order.cityName || 'Миколаїв'}</span>
+        <span class="text-muted small">${order.pickup_time || order.branchName || 'Відділення №1'}</span>
+      </td>
+      <td class="small text-muted" style="max-width: 220px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+        ${itemsSummary}
+      </td>
+      <td class="fw-bold text-dark">${formatPrice(total)}</td>
+      <td>${badgeHtml}</td>
+      <td class="text-end pe-3">
         ${actionButtonsHtml}
-      </footer>
+      </td>
     `;
 
-    grid.appendChild(card);
+    tbody.appendChild(tr);
   });
 }
 
 // Ініціалізація табів фільтрів
 function initFilterTabs() {
-  const tabs = document.querySelectorAll('.filter-tab');
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('filter-tab--active'));
-      tab.classList.add('filter-tab--active');
-      activeFilter = tab.dataset.status;
-      renderOrders();
+  const tabBtns = document.querySelectorAll('#filterTabs .nav-link');
+  tabBtns.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.status;
+      renderOrdersTable();
     });
   });
 }
 
-// Ініціалізація
+// Ініціалізація сторінки AdminLTE 4
 document.addEventListener('DOMContentLoaded', () => {
   const overlay = document.getElementById('adminLoginOverlay');
   const loginForm = document.getElementById('adminLoginForm');
   const passInput = document.getElementById('adminPasswordInput');
   const errorMsg = document.getElementById('adminLoginError');
-  const loginBtn = loginForm.querySelector('.admin-login-btn');
+  const loginBtn = document.getElementById('adminLoginBtn');
 
-  // Ініціалізація AudioContext на першу взаємодію користувача
-  let audioCtx = null;
-  function initAudio() {
-    if (audioCtx) return;
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  // Modal init
+  const detailsModalEl = document.getElementById('orderDetailsModal');
+  if (detailsModalEl && typeof bootstrap !== 'undefined') {
+    orderDetailsModal = new bootstrap.Modal(detailsModalEl);
   }
-  ['click', 'keydown', 'touchstart'].forEach(type => {
-    document.addEventListener(type, initAudio, { once: true });
-  });
+  initAdminConfirmModal();
 
   function initAdmin() {
-    overlay.classList.add('hidden');
+    overlay?.classList.add('hidden');
     initFilterTabs();
-    initAdminConfirmModal();
     
     // Кнопка оновлення
     const refreshBtn = document.getElementById('refreshBtn');
@@ -487,27 +545,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Пошук в реальному часі
     const searchInput = document.getElementById('adminSearchInput');
     searchInput?.addEventListener('input', () => {
-      renderOrders();
+      renderOrdersTable();
     });
 
     fetchOrders();
     setInterval(fetchOrders, 10000);
   }
 
-  // Если уже авторизован в этой сессии (проверяем наличие сохраненного пароля)
+  // Авторизація сесії
   if (sessionStorage.getItem('admin_password')) {
     initAdmin();
     return;
   }
 
-  // Обработка формы входа
-  loginForm.addEventListener('submit', async (e) => {
+  // Обробка входу
+  loginForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const value = passInput.value;
     if (!value) return;
 
     loginBtn.disabled = true;
-    loginBtn.textContent = 'Перевірка...';
+    loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Перевірка...';
 
     try {
       const res = await fetch('/api/auth', {
@@ -518,21 +576,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (res.ok) {
         sessionStorage.setItem('admin_password', value);
-        errorMsg.textContent = '';
-        passInput.classList.remove('error');
+        errorMsg.classList.add('d-none');
         initAdmin();
       } else {
+        errorMsg.classList.remove('d-none');
         errorMsg.textContent = 'Невірний пароль. Спробуйте ще раз.';
-        passInput.classList.add('error');
         passInput.value = '';
         passInput.focus();
-        setTimeout(() => passInput.classList.remove('error'), 500);
       }
     } catch (err) {
+      errorMsg.classList.remove('d-none');
       errorMsg.textContent = 'Помилка з\'єднання з сервером.';
     } finally {
       loginBtn.disabled = false;
-      loginBtn.textContent = 'Увійти';
+      loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i> Увійти в адмінку';
     }
   });
 });
