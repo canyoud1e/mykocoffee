@@ -43,19 +43,17 @@
       font-family: var(--font-heading);
     }
 
-    /* MYKO Coffee Header & Sidebar Styling */
+    /* Full Width Main Layout (No Sidebar) */
+    .app-main {
+      margin-left: 0 !important;
+      max-width: 100% !important;
+    }
+
     .app-header {
       background-color: #ffffff !important;
       border-bottom: 1px solid var(--myko-border) !important;
     }
-    
-    .app-sidebar {
-      background-color: var(--myko-primary) !important;
-    }
-    .sidebar-brand {
-      background-color: rgba(0, 0, 0, 0.15) !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
+
     .brand-text {
       font-weight: 800;
       letter-spacing: -0.01em;
@@ -121,7 +119,7 @@
     }
   </style>
 </head>
-<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+<body class="bg-body-tertiary">
 
   <!-- ЕКРАН ВХОДУ (MYKO LOGIN CARD) -->
   <div class="admin-login-overlay" id="adminLoginOverlay">
@@ -166,15 +164,18 @@
 
     <!-- ВЕРХНЯ НАВІГАЦІЙНА ПАНЕЛЬ (TOP NAVBAR) -->
     <nav class="app-header navbar navbar-expand bg-white shadow-sm border-bottom">
-      <div class="container-fluid">
-        <!-- Ліва частина -->
-        <ul class="navbar-nav align-items-center">
+      <div class="container-fluid px-3 px-md-4">
+        <!-- Ліва частина (Логотип + Перехід в магазин) -->
+        <ul class="navbar-nav align-items-center gap-3">
           <li class="nav-item">
-            <a class="nav-link text-dark" data-lte-toggle="sidebar" href="#" role="button">
-              <i class="bi bi-list fs-4"></i>
+            <a href="/" class="text-decoration-none text-dark d-flex align-items-center gap-2">
+              <div class="bg-dark text-white rounded-circle p-1.5 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background-color: var(--myko-primary) !important;">
+                <i class="fa-solid fa-mug-hot fw-bold"></i>
+              </div>
+              <span class="brand-text fw-bold fs-5 mb-0 text-dark">MYKO COFFEE</span>
             </a>
           </li>
-          <li class="nav-item d-none d-md-block ms-2">
+          <li class="nav-item d-none d-md-block">
             <a href="/" class="btn btn-outline-dark btn-sm rounded-pill fw-semibold">
               <i class="bi bi-shop me-1"></i> Перейти в магазин
             </a>
@@ -212,51 +213,6 @@
       </div>
     </nav>
 
-    <!-- ЛІВИЙ САЙДБАР (APP SIDEBAR) -->
-    <aside class="app-sidebar bg-dark text-white shadow" data-bs-theme="dark">
-      <!-- Brand Logo -->
-      <div class="sidebar-brand py-3 px-3 border-bottom border-secondary border-opacity-25">
-        <a href="#" class="brand-link text-decoration-none text-white d-flex align-items-center gap-2">
-          <div class="bg-warning text-dark rounded-circle p-1.5 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-            <i class="fa-solid fa-mug-hot fw-bold"></i>
-          </div>
-          <span class="brand-text fw-bold fs-5 mb-0 text-white">MYKO COFFEE</span>
-        </a>
-      </div>
-
-      <!-- Sidebar Menu -->
-      <div class="sidebar-wrapper py-3">
-        <!-- User Status -->
-        <div class="px-3 mb-3 d-flex align-items-center gap-2 text-light opacity-75 small">
-          <span class="badge bg-success rounded-circle p-1"><span class="visually-hidden">Online</span></span>
-          <span>Бариста: <strong>Черговий зміна</strong></span>
-        </div>
-
-        <nav class="mt-2">
-          <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu">
-            <li class="nav-item">
-              <a href="#" class="nav-link active">
-                <i class="nav-icon bi bi-speedometer2"></i>
-                <p class="fw-semibold">Дашборд замовлень</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="/#menu" class="nav-link">
-                <i class="nav-icon bi bi-cup-hot"></i>
-                <p>Меню напоїв</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="/" class="nav-link">
-                <i class="nav-icon bi bi-bag-check"></i>
-                <p>Вітрина магазину</p>
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </aside>
-
     <!-- ГОЛОВНА ОБЛАСТЬ (MAIN CONTENT AREA) -->
     <main class="app-main p-3 p-md-4">
       
@@ -268,7 +224,7 @@
               <h3 class="mb-0 fw-bold text-dark">
                 <i class="bi bi-kanban me-2" style="color: var(--myko-primary);"></i>Панель управління замовленнями
               </h3>
-              <p class="text-muted small mb-0">Моніторинг та обробка замовлень кав'ярні та Нової Пошти</p>
+              <p class="text-muted small mb-0">Моніторинг та обробка замовлень кав'ярні</p>
             </div>
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-end bg-transparent p-0 mb-0 small">

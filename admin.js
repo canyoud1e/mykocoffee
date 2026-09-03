@@ -140,7 +140,7 @@ async function fetchOrders() {
             comment: parsed.orderComment || parsed.comment || parsed.wishes || 'Помол: В зернах',
             created_at: parsed.date || new Date().toISOString(),
             payment_method: parsed.paymentMethod || 'Оплата карткою online',
-            delivery_service: parsed.deliveryService || 'Нова пошта'
+            delivery_service: parsed.deliveryService || 'Доставка'
           });
         }
       }
