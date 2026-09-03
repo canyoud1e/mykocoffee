@@ -137,7 +137,7 @@ async function fetchOrders() {
             pickup_date: parsed.cityName || parsed.city || 'Миколаїв',
             pickup_time: parsed.branchName || parsed.branch || 'Відділення №1',
             items: parsed.cart ? parsed.cart.map(c => ({ name: c.name, size_label: c.size, size_volume: `${c.price}₴`, quantity: c.quantity, price: c.price })) : [],
-            status: 'new',
+            comment: parsed.orderComment || parsed.comment || parsed.wishes || 'Помол: В зернах',
             created_at: parsed.date || new Date().toISOString(),
             payment_method: parsed.paymentMethod || 'Оплата карткою online',
             delivery_service: parsed.deliveryService || 'Нова пошта'
@@ -374,6 +374,14 @@ function showOrderDetailsModal(orderId) {
 
   const totalAmount = (order.items || []).reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
 
+  const commentText = order.comment || order.orderComment || order.wishes || '';
+  const commentHtml = commentText ? `
+    <div class="alert alert-warning border-0 text-dark p-3 mb-3 rounded-3" style="background-color: #fff8e1;">
+      <h6 class="fw-bold mb-1 text-warning-emphasis"><i class="bi bi-chat-left-dots me-1.5"></i> Побажання / Коментар клієнта:</h6>
+      <p class="mb-0 small fw-medium text-dark">${commentText}</p>
+    </div>
+  ` : '';
+
   if (modalBody) {
     modalBody.innerHTML = `
       <div class="row g-3 mb-3">
@@ -395,6 +403,8 @@ function showOrderDetailsModal(orderId) {
           <span class="badge bg-light text-dark border">${order.payment_method || 'Оплата карткою online'}</span>
         </div>
       </div>
+
+      ${commentHtml}
 
       <div class="card border-0 bg-light p-3 mb-3">
         <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-cart-check me-1"></i> Товари у замовленні:</h6>
@@ -459,6 +469,8 @@ function renderOrdersTable() {
     const total = (order.items || []).reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
 
     const itemsSummary = (order.items || []).map(i => `${i.name} (${i.quantity} шт)`).join(', ') || 'Кава Brazil Mogiana';
+    const commentText = order.comment || order.orderComment || order.wishes || '';
+    const commentBadge = commentText ? `<div class="text-warning-emphasis small mt-1 fw-semibold text-truncate" style="max-width:210px;" title="${commentText}"><i class="bi bi-chat-left-dots me-1"></i>${commentText}</div>` : '';
 
     let actionButtonsHtml = '';
     if (order.status === 'new') {
@@ -504,8 +516,9 @@ function renderOrdersTable() {
         <span class="d-block fw-semibold text-dark">${order.pickup_date || order.cityName || 'Миколаїв'}</span>
         <span class="text-muted small">${order.pickup_time || order.branchName || 'Відділення №1'}</span>
       </td>
-      <td class="small text-muted" style="max-width: 220px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-        ${itemsSummary}
+      <td class="small text-muted" style="max-width: 220px;">
+        <span class="d-block text-truncate fw-medium text-dark">${itemsSummary}</span>
+        ${commentBadge}
       </td>
       <td class="fw-bold text-dark">${formatPrice(total)}</td>
       <td>${badgeHtml}</td>
