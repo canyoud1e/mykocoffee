@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AdminLTE 4 — Панель управління MYKO Coffee</title>
+  <title>AdminLTE 4 — MYKO Coffee Admin Panel</title>
 
-  <!-- Google Font: Source Sans 3 & Outfit -->
+  <!-- Google Fonts: Outfit & Inter (matching MYKO Coffee website) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Bootstrap 5 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -20,20 +20,74 @@
   <!-- AdminLTE 4 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta2/dist/css/adminlte.min.css">
 
+  <!-- MYKO Coffee Brand Overrides for AdminLTE 4 -->
   <style>
+    :root {
+      --myko-dark: #18181b;
+      --myko-mocha: #27272a;
+      --myko-gold: #d97706;
+      --myko-cream: #fafafa;
+      --myko-border: #e4e4e7;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
     body {
-      font-family: 'Source Sans 3', 'Outfit', sans-serif;
+      font-family: var(--font-body);
+      background-color: #f4f4f5;
+      color: #18181b;
+    }
+
+    h1, h2, h3, h4, h5, h6, .brand-text, .nav-link, .btn {
+      font-family: var(--font-heading);
+    }
+
+    /* AdminLTE 4 Sidebar Brand Styling */
+    .app-sidebar {
+      background-color: var(--myko-dark) !important;
+    }
+    .sidebar-brand {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     }
     .brand-text {
-      font-family: 'Outfit', sans-serif;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: -0.02em;
     }
+
+    .nav-pills .nav-link.active {
+      background-color: var(--myko-dark) !important;
+      color: #ffffff !important;
+    }
+
+    /* MYKO Custom Small Boxes (Stat Cards) */
+    .box-revenue {
+      background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+      color: #ffffff;
+    }
+    .box-orders {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      color: #ffffff;
+    }
+    .box-average {
+      background: linear-gradient(135deg, #3f3f46 0%, #27272a 100%);
+      color: #ffffff;
+    }
+    .box-new {
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      color: #ffffff;
+    }
+
+    .status-badge-new { background-color: #dc2626; color: #fff; }
+    .status-badge-preparing { background-color: #d97706; color: #fff; }
+    .status-badge-ready { background-color: #2563eb; color: #fff; }
+    .status-badge-completed { background-color: #16a34a; color: #fff; }
+    .status-badge-cancelled { background-color: #71717a; color: #fff; }
+
     /* Login Overlay */
     .admin-login-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(24, 24, 27, 0.92);
       backdrop-filter: blur(8px);
       z-index: 9999;
       display: flex;
@@ -46,62 +100,53 @@
     }
     .login-box {
       width: 100%;
-      max-width: 400px;
+      max-width: 410px;
     }
-    .status-badge-new { background-color: #dc3545; color: #fff; }
-    .status-badge-preparing { background-color: #ffc107; color: #000; }
-    .status-badge-ready { background-color: #0dcaf0; color: #000; }
-    .status-badge-completed { background-color: #198754; color: #fff; }
-    .status-badge-cancelled { background-color: #6c757d; color: #fff; }
-    
-    .order-card-row {
-      transition: background-color 0.2s ease;
+
+    .btn-myko {
+      background-color: var(--myko-dark);
+      color: #ffffff;
+      border: 1px solid var(--myko-dark);
     }
-    .order-card-row:hover {
-      background-color: rgba(13, 110, 253, 0.03);
-    }
-    .table-responsive {
-      min-height: 250px;
+    .btn-myko:hover {
+      background-color: var(--myko-mocha);
+      color: #ffffff;
     }
   </style>
 </head>
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 
-  <!-- ЕКРАН ВХОДУ (ADMINLTE 4 LOGIN CARD) -->
+  <!-- ЕКРАН ВХОДУ (MYKO BRANDED LOGIN) -->
   <div class="admin-login-overlay" id="adminLoginOverlay">
     <div class="login-box">
-      <div class="card card-outline card-primary shadow-lg border-0">
-        <div class="card-header text-center py-4 bg-white">
-          <div class="d-inline-flex align-items-center justify-content-center bg-dark text-white rounded-circle mb-2" style="width: 54px; height: 54px;">
+      <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+        <div class="card-header text-center py-4 bg-dark text-white border-0">
+          <div class="d-inline-flex align-items-center justify-content-center bg-white text-dark rounded-circle mb-2" style="width: 58px; height: 58px;">
             <i class="fa-solid fa-mug-hot fa-xl"></i>
           </div>
-          <h3 class="h4 mb-0 brand-text text-dark">MYKO COFFEE</h3>
-          <small class="text-muted">Панель управління AdminLTE 4</small>
+          <h3 class="h4 mb-0 brand-text text-white">MYKO COFFEE</h3>
+          <small class="text-white-50">Панель управління замовленнями</small>
         </div>
-        <div class="card-body login-card-body p-4">
-          <p class="login-box-msg text-secondary small fw-medium mb-3 text-center">Авторизуйтесь для доступу до замовлень</p>
+        <div class="card-body login-card-body p-4 bg-white">
+          <p class="login-box-msg text-secondary small fw-medium mb-3 text-center">Авторизуйтесь для доступу до адмінки</p>
           
           <form id="adminLoginForm" autocomplete="off">
             <div class="input-group mb-3">
-              <input type="password" id="adminPasswordInput" class="form-control" placeholder="Пароль бариста" autofocus required>
-              <div class="input-group-text">
+              <input type="password" id="adminPasswordInput" class="form-control py-2" placeholder="Пароль бариста" autofocus required>
+              <div class="input-group-text bg-light">
                 <span class="bi bi-lock-fill"></span>
               </div>
             </div>
 
             <div id="adminLoginError" class="alert alert-danger py-2 small mb-3 text-center d-none" role="alert"></div>
 
-            <div class="row">
-              <div class="col-12">
-                <button type="submit" class="btn btn-primary w-100 fw-bold py-2" id="adminLoginBtn">
-                  <i class="bi bi-box-arrow-in-right me-1"></i> Увійти в адмінку
-                </button>
-              </div>
-            </div>
+            <button type="submit" class="btn btn-myko w-100 fw-bold py-2.5 rounded-3" id="adminLoginBtn">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Увійти в адмінку
+            </button>
           </form>
         </div>
-        <div class="card-footer bg-light text-center py-3">
-          <a href="/" class="text-decoration-none small text-secondary">
+        <div class="card-footer bg-light text-center py-3 border-0">
+          <a href="/" class="text-decoration-none small text-secondary fw-semibold">
             <i class="bi bi-arrow-left me-1"></i> Повернутися до магазину
           </a>
         </div>
@@ -113,7 +158,7 @@
   <div class="app-wrapper">
 
     <!-- ВЕРХНЯ НАВІГАЦІЙНА ПАНЕЛЬ (TOP NAVBAR) -->
-    <nav class="app-header navbar navbar-expand bg-body shadow-sm">
+    <nav class="app-header navbar navbar-expand bg-white shadow-sm border-bottom">
       <div class="container-fluid">
         <!-- Ліва частина -->
         <ul class="navbar-nav align-items-center">
@@ -123,7 +168,7 @@
             </a>
           </li>
           <li class="nav-item d-none d-md-block ms-2">
-            <a href="/" class="btn btn-outline-dark btn-sm rounded-pill">
+            <a href="/" class="btn btn-outline-dark btn-sm rounded-pill fw-semibold">
               <i class="bi bi-shop me-1"></i> Перейти в магазин
             </a>
           </li>
@@ -145,14 +190,14 @@
 
           <!-- Оновити дані -->
           <li class="nav-item">
-            <button class="btn btn-light btn-sm text-dark border" id="refreshBtn" title="Оновити замовлення">
+            <button class="btn btn-light btn-sm text-dark border fw-semibold" id="refreshBtn" title="Оновити замовлення">
               <i class="bi bi-arrow-clockwise me-1"></i> Оновити
             </button>
           </li>
 
           <!-- Видалити всі -->
           <li class="nav-item">
-            <button class="btn btn-outline-danger btn-sm" id="deleteAllBtn" title="Очистити базу замовлень">
+            <button class="btn btn-outline-danger btn-sm fw-semibold" id="deleteAllBtn" title="Очистити базу замовлень">
               <i class="bi bi-trash3 me-1"></i> Очистити все
             </button>
           </li>
@@ -165,10 +210,10 @@
       <!-- Brand Logo -->
       <div class="sidebar-brand py-3 px-3 border-bottom border-secondary border-opacity-25">
         <a href="#" class="brand-link text-decoration-none text-white d-flex align-items-center gap-2">
-          <div class="bg-primary text-white rounded p-1 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
-            <i class="fa-solid fa-mug-hot"></i>
+          <div class="bg-warning text-dark rounded-circle p-1.5 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+            <i class="fa-solid fa-mug-hot fw-bold"></i>
           </div>
-          <span class="brand-text fw-bold fs-5 mb-0">MYKO COFFEE</span>
+          <span class="brand-text fw-bold fs-5 mb-0 text-white">MYKO COFFEE</span>
         </a>
       </div>
 
@@ -185,7 +230,7 @@
             <li class="nav-item">
               <a href="#" class="nav-link active">
                 <i class="nav-icon bi bi-speedometer2"></i>
-                <p>Дашборд замовлень</p>
+                <p class="fw-semibold">Дашборд замовлень</p>
               </a>
             </li>
             <li class="nav-item">
@@ -214,13 +259,13 @@
           <div class="row align-items-center">
             <div class="col-sm-6">
               <h3 class="mb-0 fw-bold text-dark">
-                <i class="bi bi-kanban me-2 text-primary"></i>Панель управління замовленнями
+                <i class="bi bi-kanban me-2 text-warning"></i>Панель управління замовленнями
               </h3>
-              <p class="text-muted small mb-0">Шаблон AdminLTE 4 · Моніторинг замовлень Нової Пошти та кав'ярні</p>
+              <p class="text-muted small mb-0">Стилізований шаблон AdminLTE 4 під брендинг MYKO Coffee</p>
             </div>
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-end bg-transparent p-0 mb-0 small">
-                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">MYKO</a></li>
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-dark">MYKO</a></li>
                 <li class="breadcrumb-item active" aria-current="page">AdminLTE 4</li>
               </ol>
             </div>
@@ -232,15 +277,15 @@
       <div class="app-content">
         <div class="container-fluid">
 
-          <!-- 4 СТАТИСТИЧНІ КАРТКИ (ADMINLTE 4 SMALL BOXES) -->
+          <!-- 4 СТАТИСТИЧНІ КАРТКИ (MYKO BRANDED SMALL BOXES) -->
           <div class="row g-3 mb-4">
             
             <!-- Каса -->
             <div class="col-lg-3 col-6">
-              <div class="small-box bg-success text-white shadow-sm rounded-3 p-3 position-relative overflow-hidden">
+              <div class="small-box box-revenue shadow-sm rounded-4 p-3 position-relative overflow-hidden">
                 <div class="inner">
                   <h3 class="fw-bold mb-1" id="statsRevenue">0 ₴</h3>
-                  <p class="mb-0 opacity-75 font-sans">💰 Каса (Виконані)</p>
+                  <p class="mb-0 opacity-75">💰 Каса (Виконані)</p>
                 </div>
                 <div class="icon position-absolute end-0 bottom-0 p-3 opacity-25">
                   <i class="bi bi-cash-stack fs-1"></i>
@@ -250,7 +295,7 @@
 
             <!-- Виконано замовлень -->
             <div class="col-lg-3 col-6">
-              <div class="small-box bg-info text-white shadow-sm rounded-3 p-3 position-relative overflow-hidden">
+              <div class="small-box box-orders shadow-sm rounded-4 p-3 position-relative overflow-hidden">
                 <div class="inner">
                   <h3 class="fw-bold mb-1" id="statsCount">0</h3>
                   <p class="mb-0 opacity-75">☕ Виконано замовлень</p>
@@ -263,12 +308,12 @@
 
             <!-- Середній чек -->
             <div class="col-lg-3 col-6">
-              <div class="small-box bg-warning text-dark shadow-sm rounded-3 p-3 position-relative overflow-hidden">
+              <div class="small-box box-average shadow-sm rounded-4 p-3 position-relative overflow-hidden">
                 <div class="inner">
                   <h3 class="fw-bold mb-1" id="statsAverage">0 ₴</h3>
-                  <p class="mb-0 text-dark opacity-75">📊 Середній чек</p>
+                  <p class="mb-0 opacity-75">📊 Середній чек</p>
                 </div>
-                <div class="icon position-absolute end-0 bottom-0 p-3 opacity-25 text-dark">
+                <div class="icon position-absolute end-0 bottom-0 p-3 opacity-25">
                   <i class="bi bi-calculator fs-1"></i>
                 </div>
               </div>
@@ -276,7 +321,7 @@
 
             <!-- Нові замовлення -->
             <div class="col-lg-3 col-6">
-              <div class="small-box bg-danger text-white shadow-sm rounded-3 p-3 position-relative overflow-hidden">
+              <div class="small-box box-new shadow-sm rounded-4 p-3 position-relative overflow-hidden">
                 <div class="inner">
                   <h3 class="fw-bold mb-1" id="countNewBox">0</h3>
                   <p class="mb-0 opacity-75">🔔 Нових очікує</p>
@@ -290,7 +335,7 @@
           </div>
 
           <!-- КАРТКА УПРАВЛІННЯ ТА ТАБЛИЦЯ (ADMINLTE CARD & TABLE) -->
-          <div class="card shadow-sm border-0 mb-4">
+          <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
             
             <!-- Card Header -->
             <div class="card-header bg-white py-3 border-bottom">
@@ -307,8 +352,8 @@
                     <button class="nav-link btn-sm fw-semibold text-warning" data-status="preparing">
                       Готуються <span class="badge bg-warning text-dark ms-1" id="countPreparing">0</span>
                     </button>
-                    <button class="nav-link btn-sm fw-semibold text-info" data-status="ready">
-                      Готові <span class="badge bg-info text-dark ms-1" id="countReady">0</span>
+                    <button class="nav-link btn-sm fw-semibold text-primary" data-status="ready">
+                      Готові <span class="badge bg-primary ms-1" id="countReady">0</span>
                     </button>
                     <button class="nav-link btn-sm fw-semibold text-success" data-status="completed">
                       Завершені <span class="badge bg-success ms-1" id="countCompleted">0</span>
@@ -319,7 +364,7 @@
                 <!-- Пошук -->
                 <div class="col-12 col-md-4">
                   <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" id="adminSearchInput" class="form-control border-start-0 bg-light" placeholder="Пошук за іменем, номером або телефоном..." autocomplete="off">
                   </div>
                 </div>
@@ -347,7 +392,7 @@
                     <!-- Завантажується через admin.js -->
                     <tr>
                       <td colspan="9" class="text-center py-5 text-muted">
-                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                        <div class="spinner-border spinner-border-sm text-dark me-2" role="status"></div>
                         Завантаження замовлень...
                       </td>
                     </tr>
@@ -372,7 +417,7 @@
     <!-- FOOTER -->
     <footer class="app-footer bg-white border-top py-3 px-4 text-secondary small d-flex justify-content-between">
       <div>
-        <strong>MYKO Coffee &copy; 2026</strong> · Інтегрований AdminLTE 4 Шаблон
+        <strong>MYKO Coffee &copy; 2026</strong> · Брендована адмін-панель AdminLTE 4
       </div>
       <div>
         Версія 4.0-beta2
@@ -384,7 +429,7 @@
   <!-- МОДАЛЬНЕ ВІКНО ДЕТАЛЕЙ ЗАМОВЛЕННЯ (BOOTSTRAP 5 MODAL) -->
   <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content shadow-lg border-0">
+      <div class="modal-content shadow-lg border-0 rounded-4 overflow-hidden">
         <div class="modal-header bg-dark text-white">
           <h5 class="modal-title fw-bold" id="modalOrderTitle">Деталі замовлення</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -393,7 +438,7 @@
           <!-- Динамічний вміст -->
         </div>
         <div class="modal-footer bg-light">
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Закрити</button>
+          <button type="button" class="btn btn-secondary btn-sm rounded-2" data-bs-dismiss="modal">Закрити</button>
         </div>
       </div>
     </div>
@@ -402,7 +447,7 @@
   <!-- МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ -->
   <div class="modal fade" id="adminConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-      <div class="modal-content shadow-lg border-0">
+      <div class="modal-content shadow-lg border-0 rounded-4">
         <div class="modal-body text-center p-4">
           <div class="text-danger mb-3">
             <i class="bi bi-exclamation-triangle-fill fs-1"></i>
@@ -410,8 +455,8 @@
           <h5 class="fw-bold mb-2" id="confirmTitle">Видалити замовлення?</h5>
           <p class="text-muted small mb-4" id="confirmMessage">Цю дію неможливо скасувати.</p>
           <div class="d-flex gap-2 justify-content-center">
-            <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal" id="confirmCancelBtn">Скасувати</button>
-            <button type="button" class="btn btn-danger btn-sm px-3" id="confirmOkBtn">Видалити</button>
+            <button type="button" class="btn btn-light border btn-sm px-3 rounded-2" data-bs-dismiss="modal" id="confirmCancelBtn">Скасувати</button>
+            <button type="button" class="btn btn-danger btn-sm px-3 rounded-2" id="confirmOkBtn">Видалити</button>
           </div>
         </div>
       </div>
