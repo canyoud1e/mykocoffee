@@ -122,12 +122,14 @@ async function fetchOrders() {
       throw new Error('Помилка завантаження даних');
     }
 
-    // Якщо є збережені замовлення в localStorage для сумісності з розширеним клеймом
+    // Якщо є збережені замовлення в localStorage
     try {
       const localLastOrder = localStorage.getItem('myko_last_order');
+      const deletedList = JSON.parse(localStorage.getItem('myko_deleted_orders') || '[]');
+      
       if (localLastOrder) {
         const parsed = JSON.parse(localLastOrder);
-        if (parsed && parsed.orderNumber && !fetchedData.some(o => o.orderNumber === parsed.orderNumber)) {
+        if (parsed && parsed.orderNumber && !deletedList.includes(String(parsed.orderNumber)) && !fetchedData.some(o => String(o.id) === String(parsed.orderNumber))) {
           fetchedData.unshift({
             id: parsed.orderNumber,
             customer_name: parsed.name || 'Олексій Коваленко',
@@ -142,6 +144,9 @@ async function fetchOrders() {
           });
         }
       }
+
+      // Відфільтровуємо всі видалені користувачем замовлення
+      fetchedData = fetchedData.filter(o => !deletedList.includes(String(o.id)));
     } catch (e) {
       console.warn('localStorage parse error:', e);
     }
@@ -288,6 +293,21 @@ async function deleteOrder(orderId) {
       } catch (err) {
         console.warn('Network delete warning:', err);
       }
+
+      // Запобігаємо повторному відновленню видаленого замовлення з localStorage
+      try {
+        const localLastOrder = localStorage.getItem('myko_last_order');
+        if (localLastOrder) {
+          const parsed = JSON.parse(localLastOrder);
+          if (parsed && String(parsed.orderNumber) === String(orderId)) {
+            localStorage.removeItem('myko_last_order');
+          }
+        }
+        let deletedList = JSON.parse(localStorage.getItem('myko_deleted_orders') || '[]');
+        deletedList.push(String(orderId));
+        localStorage.setItem('myko_deleted_orders', JSON.stringify(deletedList));
+      } catch (e) {}
+
       orders = orders.filter(o => String(o.id) !== String(orderId));
       updateFilterCounts();
       updateStatistics();
@@ -312,6 +332,7 @@ async function deleteAllOrders() {
       }
       orders = [];
       localStorage.removeItem('myko_last_order');
+      localStorage.removeItem('myko_deleted_orders');
       updateFilterCounts();
       updateStatistics();
       renderOrdersTable();
